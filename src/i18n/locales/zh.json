@@ -1,0 +1,354 @@
+{
+  "localeName": "简体中文",
+  "manifest": {
+    "extensionName": "TUfast TU Dresden",
+    "extensionDescription": "TU Dresden 学生的效率工具",
+    "commandOpenOpal": "打开 OPAL",
+    "commandOpenOwa": "打开邮件 (OWA)"
+  },
+  "common": {
+    "close": "关闭",
+    "edit": "编辑",
+    "active": "已启用",
+    "inactive": "已停用",
+    "saved": "已保存",
+    "website": "网站",
+    "team": "团队",
+    "github": "GitHub",
+    "supportUs": "支持我们",
+    "privacy": "隐私"
+  },
+  "settings": {
+    "documentTitle": "TUfast 设置",
+    "location": "设置",
+    "personalization": "个性化",
+    "functions": "功能",
+    "information": "信息",
+    "statistics": {
+      "saved": "已节省：",
+      "clicks": " 次点击 | 次点击",
+      "minutes": "{count} 分钟",
+      "seconds": "{count} 秒"
+    },
+    "tiles": {
+      "autoLogin": "自动登录",
+      "email": "邮件通知",
+      "improveOpal": "改进 OPAL",
+      "improveSelma": "改进 Selma",
+      "searchEngines": "搜索引擎增强",
+      "shortcuts": "快捷键",
+      "rockets": "收集火箭",
+      "about": "关于项目",
+      "contact": "帮助与联系",
+      "faculty": "我的学院",
+      "language": "语言"
+    },
+    "pages": {
+      "email": {
+        "needsLogin": "你需要先用自己的登录信息设置“自动登录”，才能使用此功能。",
+        "title": "收到新邮件时获取通知",
+        "fetchToggle": "将未读邮件数量显示为通知角标",
+        "notificationToggle": "收到新邮件时显示弹出通知",
+        "permission": "获取未读邮件数量最多可能需要 5 分钟。TUfast 需要一项特殊权限，请在接下来的弹窗中点击“允许”。",
+        "help": "此功能会让 TUfast 从 TU Dresden 邮件服务器获取你的未读邮件数量。登录数据会加密传输，连接是安全的。这和你在浏览器中查看邮件的方式相同。通知通过 Windows API 发送。请注意，你需要在 Windows 中启用相应功能。"
+      },
+      "improveOpal": {
+        "title": "改进 OPAL 中 PDF 和文本文档的处理方式",
+        "inline": "直接在浏览器中打开 PDF 和文本文档，而不是下载它们",
+        "newTab": "在新标签页中打开 PDF 和文本文档（推荐）",
+        "permission": "要应用这些设置，你需要刷新一次 OPAL。TUfast 可能需要一项特殊权限，请在接下来的弹窗中点击“允许”。",
+        "firefoxWarning": "很遗憾，此功能在 Firefox 中不够稳定。"
+      },
+      "improveSelma": {
+        "title": "改进 Selma 的布局和成绩分布显示",
+        "toggle": "添加改进后的布局、成绩分布和考试尝试次数追踪",
+        "help": "此功能会在 Selma 中添加成绩分布图和考试尝试次数追踪，并调整布局和设计，使其更易使用。"
+      },
+      "rockets": {
+        "title": "解锁新火箭，并用它们个性化 OPAL 和你的浏览器！",
+        "help": "这也会支持 TUfast 项目，对我们帮助很大 :)"
+      },
+      "searchEngines": {
+        "title": "在搜索引擎中输入短命令，直接打开 OPAL 和其他工具",
+        "toggle": "启用搜索引擎增强",
+        "help": "例如，在 Google 搜索中输入“tumail”即可直接打开 Outlook Web App。大多数搜索引擎都支持！"
+      },
+      "shortcuts": {
+        "title": "用键盘快捷键打开 OPAL 和其他工具",
+        "activeByDefault": "默认启用：",
+        "dashboard": "打开仪表盘",
+        "opal": "打开 OPAL",
+        "mail": "打开邮件 (OWA)"
+      },
+      "autoLogin": {
+        "saved": "当前已保存",
+        "notSaved": "未保存数据",
+        "intro": "为此，你的 {name} 登录数据必须安全地保存在这台电脑上。数据只会本地加密保存，你可以随时删除。",
+        "saveLogin": "在本地保存登录信息",
+        "deleteLogin": "删除登录信息",
+        "twoFactorTitle": "双因素认证 (2FA)",
+        "twoFactorHelp": "自动登录也支持 2FA。你可以在这里保存 TOTP 密钥。该密钥使用 Base32 编码，例如如下所示：",
+        "twoFactorLink": "你可以在这里找到更多信息和完整的设置指南。↗",
+        "saveKey": "在本地保存密钥",
+        "deleteKey": "删除密钥"
+      },
+      "about": {
+        "title": "为什么线上学习要这么复杂？",
+        "intro1": "在 TU Dresden，我们每天都要在 OPAL、Selma、Hisqis 和 Outlook 之间来回切换，浪费时间也消耗耐心。于是我们问自己：能不能更简单？TUfast 就从这个问题开始。它最初只是学习期间的一个小副项目，后来成长为一个迅速触达越来越多学生的平台。几行代码最终变成了一个共同使命：让 TU Dresden 的数字化学习生活更轻松。",
+        "intro2": "今天，TUfast 是由 TU Dresden 学生和校友维护的开源项目。TU Dresden 已有超过 4000 名学生在使用它。所有参与项目的人都是自愿贡献，希望让其他学生的线上教学体验轻松一点。",
+        "supportersStart": "该项目还获得了",
+        "supportersEnd": "、信息学院、TU Dresden 多个学生会以及 GitHub 上热心赞助者的支持",
+        "nextStep": "我们还没有到终点：下一步是继续扩展 TUfast，为 TU Dresden、萨克森州的其他高校，以及所有希望数字化教学更有条理、更轻松的人服务。",
+        "claim": "由学生打造，为学生服务。免费且开源。",
+        "clickCalcTitle": "节省点击次数的计算方式：",
+        "clickCalcClick": "节省一次点击 = 3 秒",
+        "clickCalcShortcut": "使用一次快捷键 = 节省 2 次点击",
+        "clickCalcLogin": "一次自动登录 = 节省 3 次点击",
+        "clickCalcCourse": "通过仪表盘打开一门课程 = 节省 3 次点击",
+        "clickCalcSearch": "一次搜索重定向 = 节省 2 次点击",
+        "developedBy": "TUfast 由以下人员开发：",
+        "licenses": "开源与许可证",
+        "fontLicense": "字体：Space Grotesk，2020。The Space Grotesk Project Authors、Florian Karsten，SIL Open Font License。",
+        "iconLicense": "图标：Tabler Icons，Copyright (c) 2018-2025 Tabler，MIT License"
+      },
+      "contact": {
+        "title": "你有关于 TUfast 的问题或想法吗？",
+        "text": "那就欢迎发送邮件至",
+        "subject": "TUfast 反馈"
+      },
+      "appearance": {
+        "title": "外观"
+      }
+    },
+    "logins": {
+      "zih": {
+        "title": "自动登录 TU Dresden 的所有在线门户",
+        "name": "TU Dresden",
+        "usernamePlaceholder": "用户名（ZIH 登录）",
+        "usernameError": "用户名格式类似于 's3276763' 或 'luka075d'。只有在确认无误时才保存当前输入。",
+        "passwordPlaceholder": "密码（ZIH 登录）",
+        "passwordError": "密码长度至少为 5 个字符。",
+        "totpSecretPlaceholder": "TOTP 密钥",
+        "totpSecretError": "TOTP 密钥由大写字母（A 到 Z）和数字（2 到 7）组成，长度为 32 个字符。"
+      },
+      "slub": {
+        "title": "自动登录 SLUB 网站",
+        "name": "SLUB",
+        "usernamePlaceholder": "用户编号（SLUB 登录）",
+        "usernameError": "你可以在 SLUB 卡等位置找到用户编号。",
+        "passwordPlaceholder": "密码（SLUB 登录）",
+        "passwordError": "密码长度至少为 5 个字符。"
+      }
+    },
+    "faculty": {
+      "alt": "{name} 专业的图标",
+      "placeholder": "占位符",
+      "default": "默认设置",
+      "mailSubject": "专业建议",
+      "names": {
+        "geowissenschaften": "地球科学",
+        "maschinenbau": "机械工程",
+        "informatik": "计算机科学",
+        "mathematik": "数学",
+        "medizin": "医学",
+        "psychologie": "心理学",
+        "wirtschaftswissenschaften": "经济与管理",
+        "elektrotechnik": "电气工程",
+        "bauingenieurwesen": "土木工程",
+        "verkehr": "“Friedrich List”交通科学",
+        "general": "默认设置",
+        "addStudiengang": "+ 添加专业..."
+      }
+    },
+    "rocketsText": {
+      "default": {
+        "beforeUnlock": "默认。人人都有。",
+        "unlocked": "默认。人人都有。"
+      },
+      "250clicks": {
+        "beforeUnlock": "节省超过 250 次点击。",
+        "unlocked": "已节省超过 250 次点击。TUfast 看起来很有用！"
+      },
+      "2500clicks": {
+        "beforeUnlock": "节省超过 2500 次点击。你是高手！",
+        "unlocked": "已节省超过 2500 次点击。TUfast 很有用！"
+      },
+      "easteregg": {
+        "beforeUnlock": "找到彩蛋！",
+        "unlocked": "已找到彩蛋 :)"
+      },
+      "email": {
+        "beforeUnlock": "觉得 TUfast 有用吗？通过邮件告诉两个人，即可解锁这枚漂亮火箭！",
+        "unlocked": "这枚火箭是你应得的！已通过邮件推荐。"
+      },
+      "webstore": {
+        "beforeUnlock": "喜欢 TUfast 吗？或者有反馈？那就在 Web Store 留下评价吧！",
+        "unlocked": "感谢你在 Web Store 的评价！"
+      },
+      "whatsapp": {
+        "beforeUnlock": "喜欢分享好东西？在 WhatsApp 上把 TUfast 分享给两位朋友，收集这枚酷火箭！",
+        "unlocked": "感谢你的支持！已通过 WhatsApp 推荐。"
+      }
+    },
+    "rocketLinks": {
+      "email": "mailto:?subject=%E8%AF%95%E8%AF%95%20TUfast%EF%BC%81&body=%E5%97%A8%20%3A)%0A%0A%E4%BD%A0%E7%9F%A5%E9%81%93%20TUfast%20%E5%90%97%EF%BC%9F%0A%0ATUfast%20%E5%8F%AF%E4%BB%A5%E5%B8%AE%E5%8A%A9%E4%BD%A0%E6%9B%B4%E9%AB%98%E6%95%88%E5%9C%B0%E4%BD%BF%E7%94%A8%20TU%20Dresden%20%E7%9A%84%E5%9C%A8%E7%BA%BF%E9%97%A8%E6%88%B7%E3%80%82%0A%E5%AE%83%E5%B8%AE%E6%88%91%E8%8A%82%E7%9C%81%E4%BA%86%E5%BE%88%E5%A4%9A%E6%97%B6%E9%97%B4%E5%92%8C%E7%83%A6%E4%BA%BA%E7%9A%84%E7%82%B9%E5%87%BB%E3%80%82%0A%0ATUfast%20%E6%98%AF%E4%B8%80%E6%AC%BE%E7%94%B1%E5%AD%A6%E7%94%9F%E5%BC%80%E5%8F%91%E7%9A%84%E6%B5%8F%E8%A7%88%E5%99%A8%E6%89%A9%E5%B1%95%E3%80%82%0A%E7%8E%B0%E5%9C%A8%E5%B0%B1%E5%8E%BB%20www.tu-fast.de%20%E8%AF%95%E8%AF%95%E5%90%A7%EF%BC%81%0A%0A%E7%A5%9D%E5%A5%BD",
+      "whatsapp": "https://api.whatsapp.com/send?text=%E5%97%A8%EF%BC%8C%E4%BD%A0%E7%9F%A5%E9%81%93%20TUfast%20%E5%90%97%EF%BC%9F%0A%0A%E5%AE%83%E8%AE%A9%20TU%20Dresden%20%E5%90%84%E4%B8%AA%E5%9C%A8%E7%BA%BF%E9%97%A8%E6%88%B7%E7%9A%84%E4%BD%BF%E7%94%A8%E6%9B%B4%E9%AB%98%E6%95%88%EF%BC%8C%E5%B7%B2%E7%BB%8F%E5%B8%AE%E6%88%91%E8%8A%82%E7%9C%81%E4%BA%86%E5%BE%88%E5%A4%9A%E6%97%B6%E9%97%B4%E5%92%8C%E7%83%A6%E4%BA%BA%E7%9A%84%E7%82%B9%E5%87%BB%E3%80%82%E5%AF%B9%E5%AD%A6%E7%94%9F%E6%9D%A5%E8%AF%B4%EF%BC%8C%E8%BF%99%E6%98%AF%E4%B8%80%E6%AC%BE%E9%9D%9E%E5%B8%B8%E5%AE%9E%E7%94%A8%E7%9A%84%E6%B5%8F%E8%A7%88%E5%99%A8%E6%89%A9%E5%B1%95%EF%BC%81%0A%0A%E7%8E%B0%E5%9C%A8%E5%B0%B1%E5%8E%BB%20www.tu-fast.de%20%E8%AF%95%E8%AF%95%E5%90%A7"
+    },
+    "searchSites": {
+      "hisqis": "HISQIS",
+      "opal": "OPAL",
+      "selma": "Selma",
+      "slub": "SLUB",
+      "tucloud": "TU Dresden Cloudstore",
+      "tudmail": "Outlook Web App",
+      "tumail": "Outlook Web App",
+      "tumatrix": "TU Dresden Matrix",
+      "tumed": "医学 ePortal",
+      "tustore": "TU Dresden Cloudstore",
+      "videocampus": "Videocampus Sachsen",
+      "tex": "Overleaf ShareLaTeX"
+    }
+  },
+  "onboarding": {
+    "start": "开始设置",
+    "next": "下一步",
+    "skip": "跳过设置",
+    "finish": "完成设置",
+    "steps": {
+      "welcome": "欢迎使用 TUfast",
+      "faculty": "我的学院",
+      "login": "自动登录 - 访问权限",
+      "otp": "自动登录 - 2FA",
+      "email": "邮件通知",
+      "opalSelma": "改进 OPAL 和 Selma",
+      "searchEngines": "搜索引擎快捷命令",
+      "done": "完成！"
+    },
+    "pages": {
+      "welcomeTitle": "你的 TU Dresden 效率工具",
+      "welcomeHelp": "使用 TUfast，每学期最多可节省<br />90 分钟和 2000 次点击",
+      "facultyHelp": "选择你的学院。你的仪表盘随后会设置好与你相关的所有链接。",
+      "loginHelp": "自动登录 TU Dresden 的所有在线门户",
+      "otpHelp": "想立即登录？那就设置双因素认证",
+      "emailHelp": "自动登录 TU Dresden 的所有在线门户",
+      "doneIntro": "TUfast 现在已为你完成设置。<br />这里还有一些提示：",
+      "doneSettings": "你可以随时更改已选择的设置",
+      "doneCourses": "将你的 OPAL 课程添加到仪表盘",
+      "doneContact": "如果你对 TUfast 有问题或想法，欢迎联系我们！",
+      "doneGoodLuck": "祝你学习顺利！"
+    }
+  },
+  "popup": {
+    "title": "TU Dresden 仪表盘",
+    "searchPlaceholder": "搜索课程...",
+    "autoLogin": "自动登录",
+    "bananaHtml": "<a tabindex=\"-1\" href=\"https://www.buymeacoffee.com/olihausdoerfer\" target=\"_blank\" style = \"position: fixed; bottom: 70px; right: 26px;\" > <img tabindex=\"-1\" style=\"width: 160px;\"src=\"https://img.buymeacoffee.com/button-api/?text=%E8%AF%B7%E6%88%91%E4%BB%AC%E5%96%9D%E4%B8%80%E7%93%B6%20Mate&emoji=%F0%9F%8D%BE&slug=olihausdoerfer&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=000000></a>",
+    "shareHtml": "<div class=\"content\"><h1>帮助你的同学发现<br /><img class=\"invert\" src=\"../../assets/images/tufast48.png\" style=\"height:1.5em;vertical-align:middle;\" /> TUfast</h1><p class=\"subtitle\">并且<a href=\"#\" id=\"rockets_link\" style=\"color:var(--color-text-link);text-decoration:underline;cursor:pointer;\">收集酷火箭</a>！</p><div class=\"share-section\"><div class=\"share-title\">分享方式</div><div class=\"share-links\"><a class=\"share-link\" href=\"mailto:?subject=%E8%AF%95%E8%AF%95%20TUfast%EF%BC%81&body=%E5%97%A8%20%3A)%0A%0A%E4%BD%A0%E7%9F%A5%E9%81%93%20TUfast%20%E5%90%97%EF%BC%9F%0A%0ATUfast%20%E5%8F%AF%E4%BB%A5%E5%B8%AE%E5%8A%A9%E4%BD%A0%E6%9B%B4%E9%AB%98%E6%95%88%E5%9C%B0%E4%BD%BF%E7%94%A8%20TU%20Dresden%20%E7%9A%84%E5%9C%A8%E7%BA%BF%E9%97%A8%E6%88%B7%E3%80%82%0A%E5%AE%83%E5%B8%AE%E6%88%91%E8%8A%82%E7%9C%81%E4%BA%86%E5%BE%88%E5%A4%9A%E6%97%B6%E9%97%B4%E5%92%8C%E7%83%A6%E4%BA%BA%E7%9A%84%E7%82%B9%E5%87%BB%E3%80%82%0A%0ATUfast%20%E6%98%AF%E4%B8%80%E6%AC%BE%E7%94%B1%E5%AD%A6%E7%94%9F%E5%BC%80%E5%8F%91%E7%9A%84%E6%B5%8F%E8%A7%88%E5%99%A8%E6%89%A9%E5%B1%95%E3%80%82%0A%E7%8E%B0%E5%9C%A8%E5%B0%B1%E5%8E%BB%20www.tu-fast.de%20%E8%AF%95%E8%AF%95%E5%90%A7%EF%BC%81%0A%0A%E7%A5%9D%E5%A5%BD\" target=\"_blank\"><img src=\"../../assets/icons/gmail.png\" />电子邮件</a><a class=\"share-link\" href=\"https://api.whatsapp.com/send?text=%E5%97%A8%EF%BC%8C%E4%BD%A0%E7%9F%A5%E9%81%93%20TUfast%20%E5%90%97%EF%BC%9F%0A%0A%E5%AE%83%E8%AE%A9%20TU%20Dresden%20%E5%90%84%E4%B8%AA%E5%9C%A8%E7%BA%BF%E9%97%A8%E6%88%B7%E7%9A%84%E4%BD%BF%E7%94%A8%E6%9B%B4%E9%AB%98%E6%95%88%EF%BC%8C%E5%B7%B2%E7%BB%8F%E5%B8%AE%E6%88%91%E8%8A%82%E7%9C%81%E4%BA%86%E5%BE%88%E5%A4%9A%E6%97%B6%E9%97%B4%E5%92%8C%E7%83%A6%E4%BA%BA%E7%9A%84%E7%82%B9%E5%87%BB%E3%80%82%E5%AF%B9%E5%AD%A6%E7%94%9F%E6%9D%A5%E8%AF%B4%EF%BC%8C%E8%BF%99%E6%98%AF%E4%B8%80%E6%AC%BE%E9%9D%9E%E5%B8%B8%E5%AE%9E%E7%94%A8%E7%9A%84%E6%B5%8F%E8%A7%88%E5%99%A8%E6%89%A9%E5%B1%95%EF%BC%81%0A%0A%E7%8E%B0%E5%9C%A8%E5%B0%B1%E5%8E%BB%20www.tu-fast.de%20%E8%AF%95%E8%AF%95%E5%90%A7\" target=\"_blank\"><img src=\"../../assets/icons/wa2.png\" />WhatsApp</a><a class=\"share-link\" href=\"https://www.tu-fast.de\" target=\"_blank\">www.tu-fast.de</a></div></div><div class=\"footer\">由学生用心制作 - <a href=\"https://github.com/TUfast-TUD/TUfast_TUD\" target=\"_blank\">GitHub</a> - <a href=\"mailto:frage%40tu-fast.de?subject=TUfast%20%E5%8F%8D%E9%A6%88\" target=\"_blank\">联系</a></div></div>",
+    "savedClicks": "{clicks} 次点击，已节省 {time}",
+    "importOpalCourses": "点击以导入你的 OPAL 课程",
+    "updateCourseList": "立即更新此课程列表...",
+    "ratingDone": "完成 <text style='font-size:14px'>OK</text>",
+    "rateBeforeSubmit": "提交评价前，请先用星级为课程评分！",
+    "introRating": "<b>我们正在寻找 TU Dresden 最好的课程。现在就用 1-5 星评价你的课程！</b> 你的评价 100% 匿名。投票结果会在之后公布。详情和隐私政策补充说明可在<a target='_blank' href='https://tu-fast.de/datenschutz'>这里</a>查看。<a id='intro' href='#'>关闭</a>。",
+    "outroRating": "<b>感谢投票。结果公布时你会收到通知！</b> 现在把 <a target='_blank' href='https://www.tu-fast.de'>www.tu-fast.de</a> 分享给朋友，让他们也能评价课程。这能帮助我们改进 TU Dresden 的教学！谢谢<br><a id='outro' href='#'>关闭</a>。",
+    "gopalBanner": "<b>给新生的提示：使用移动学习辅助系统 gOPAL，了解与你学习相关的重要信息！在这里<a target='_blank' href='https://tu-dresden.de/mz/projekte/projektoverview/mobiles-studienassistenzsystem-gopal'>打开 gOPAL。</a> <a id='msg1' href='#'>关闭</a>。",
+    "tooManyCourses": "已停用：超过 25 门课程",
+    "openAllFavorites": "打开所有收藏",
+    "openAllCourses": "打开所有课程",
+    "switchToCourses": "正在切换到“我的课程”...",
+    "switchToFavorites": "正在切换到“我的收藏”...",
+    "iconTitles": {
+      "selma": "Selma",
+      "eportal": "ePortal",
+      "moodle": "Moodle",
+      "opal": "OPAL",
+      "qis": "QIS",
+      "matrix": "Matrix 聊天",
+      "msx": "TU 邮件",
+      "slub": "SLUB",
+      "cloud": "Datashare",
+      "gitlab": "GitLab",
+      "orsee": "orsee",
+      "geoportal": "Geoportal",
+      "tuNavi": "TU 校园导航",
+      "marudor": "bahn.expert（原 marudor.de）",
+      "infoDiscord": "计算机科学 Discord",
+      "swdd": "食堂",
+      "pa": "考试办公室",
+      "tex": "tex"
+    }
+  },
+  "content": {
+    "opal": {
+      "closeAllTabs": "关闭所有标签页",
+      "closeAllTabsTitle": "关闭所有标签页。TUfast 功能。",
+      "openAllCourses": "打开所有课程",
+      "openAllCoursesTitle": "打开所有课程。TUfast 功能。",
+      "openAllFavorites": "打开所有收藏",
+      "openAllFavoritesTitle": "打开所有收藏。TUfast 功能。",
+      "coursesSaved": "你的课程已成功保存到 TUfast。现在按 <kbd>Alt</kbd> + <kbd>Q</kbd> 查看你的课程！",
+      "coursesUpdated": "你的课程已成功在 TUfast 中更新！",
+      "snowEnable": "启用雪花",
+      "snowDisable": "停用雪花",
+      "snowTitle": "配置雪花。TUfast 冬季模式。",
+      "logoTitle": "Powered by TUfast. Enjoy :)",
+      "banners": {
+        "helpText": "想帮助开发 TUfast？",
+        "helpAction": "我们正在找你！",
+        "helpTitle": "招募帮手：",
+        "mv3Text": "如果愿意，你需要重新启用 OPAL 个性化。",
+        "mv3Action": "在这里启用",
+        "mv3Title": "TUfast 大更新！",
+        "rocketText": "推荐 TUfast 并解锁新图标！",
+        "rocketAction": "开始吧！",
+        "rocketTitle": "全部收集起来！",
+        "reviewText": "那就在商店里给个好评吧！",
+        "reviewAction": "从这里前往！",
+        "reviewTitle": "喜欢吗？",
+        "close": "X"
+      }
+    },
+    "hisqis": {
+      "credits": "由 <img src=\"{imgUrl}\" style=\"position:relative; right: 2px;height: 15px;\"><a href=\"https://www.tu-fast.de\" target=\"_blank\">TUfast</a> 提供支持（由 <a href=\"https://github.com/Noxdor\" target=\"_blank\">Noxdor</a> 和 <a href=\"https://github.com/C0ntroller\" target=\"_blank\">C0ntroller</a> 开发）",
+      "oldTable": "无聊的旧表格...",
+      "newTable": "新的酷炫 TUfast 表格",
+      "continueTo": " 继续前往 ",
+      "overview": "你的成绩概览",
+      "descriptors": ["模块", "已通过考试", "未通过考试"],
+      "weightedAverage": "你的平均成绩（按 CP 加权）：{average}",
+      "moduleCount": "模块数量：{count}",
+      "examCount": "考试数量：{count}",
+      "failed": "未通过"
+    },
+    "selma": {
+      "passed": "已通过",
+      "notSet": "尚未设置",
+      "distribution": "成绩分布",
+      "tries": "尝试次数",
+      "examDate": "考试/预约",
+      "deactivate": "停用",
+      "activate": "启用",
+      "toggleTitle": "切换“改进 Selma”功能并重新加载页面以应用更改。",
+      "creditsEnabled": "表格由以下项目提供支持",
+      "creditsDisabled": "表格已停用",
+      "creditsBy": "由"
+    },
+    "owa": {
+      "permissionFetch": "TUfast 需要此权限来定期获取所有邮件。请点击“允许”。",
+      "permissionNotification": "TUfast 需要此权限来向你发送额外通知。请点击“允许”。",
+      "newMailTitle": "新邮件",
+      "newMailMessage": "你有 {count} 封新邮件 | 你有 {count} 封新邮件"
+    },
+    "opalInline": {
+      "permission": "TUfast 需要此权限来无需下载即可打开文件。请点击“允许”。"
+    },
+    "background": {
+      "tooManyLinks": "你的 {type} 超过 25 个。为避免浏览器负载过高，请手动打开它们。",
+      "favorites": "收藏",
+      "courses": "课程"
+    },
+    "otp": {
+      "snatcherConfirm": "TUfast 可以为你保存这个双因素验证码，并在相应位置自动填入（=自动登录）。不过，这其实违背了第二因素的初衷。\n\n请务必也将此代码和恢复代码保存在其他地方！\n\n要让 TUfast 为你处理双因素认证吗？"
+    }
+  }
+}
