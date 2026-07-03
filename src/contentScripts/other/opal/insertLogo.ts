@@ -1,9 +1,8 @@
-let opalInsertLogoStrings = globalThis.TUFAST_STRINGS.opal
 // OPAL loads several content scripts in one shared isolated-world scope; other bundles
 // minify globals like `var e` and would clobber top-level helpers here (easter egg).
+let opalInsertLogoStrings: typeof globalThis.TUFAST_STRINGS.opal
 ;(async () => {
-  await globalThis.TUFAST_STRINGS_READY
-  opalInsertLogoStrings = globalThis.TUFAST_STRINGS.opal
+  opalInsertLogoStrings = (await globalThis.TUFAST_STRINGS_READY).opal
 
   // Step through the color wheel
   function colorStep(noOfSteps: number = 10) {

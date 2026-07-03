@@ -1,7 +1,6 @@
-let otpSnatcherStrings = globalThis.TUFAST_STRINGS.otp
+let otpSnatcherStrings: typeof globalThis.TUFAST_STRINGS.otp
 ;(async () => {
-  await globalThis.TUFAST_STRINGS_READY
-  otpSnatcherStrings = globalThis.TUFAST_STRINGS.otp
+  otpSnatcherStrings = (await globalThis.TUFAST_STRINGS_READY).otp
 
   const qrAvailable = !!document.getElementById('qr-code')
   const seedLink = document.querySelector('#seed-link a[href^="otpauth://totp/"]')

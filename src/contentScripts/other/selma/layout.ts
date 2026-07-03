@@ -1,4 +1,4 @@
-let selmaLayoutStrings = globalThis.TUFAST_STRINGS.selma
+let selmaLayoutStrings: typeof globalThis.TUFAST_STRINGS.selma
 const currentView = document.location.pathname
 // Regex for extracting Programm name and arguments from a popup Script
 // This is used to get the URL which would be opened in a popup
@@ -266,8 +266,7 @@ async function createCreditsBanner() {
 
 // Apply all custom changes once documentd loaded
 ;(async () => {
-  await globalThis.TUFAST_STRINGS_READY
-  selmaLayoutStrings = globalThis.TUFAST_STRINGS.selma
+  selmaLayoutStrings = (await globalThis.TUFAST_STRINGS_READY).selma
 
   if (document.readyState !== 'loading') {
     await eventListener()

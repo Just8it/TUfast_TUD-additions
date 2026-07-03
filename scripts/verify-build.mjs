@@ -119,7 +119,14 @@ const scriptsUsingStrings = walkFiles(path.join(buildDir, 'contentScripts'))
   .map((filePath) => toPosix(path.relative(buildDir, filePath)))
   .sort()
 
+const directStringsAccess = /\bglobalThis\.TUFAST_STRINGS\b/
+
 for (const script of scriptsUsingStrings) {
+  const source = fs.readFileSync(path.join(buildDir, script), 'utf8')
+  if (directStringsAccess.test(source)) {
+    throw new BuildCheckError(`${script} reads TUFAST_STRINGS directly instead of awaiting TUFAST_STRINGS_READY`)
+  }
+
   const entries = manifest.content_scripts.filter((entry) => entry.js?.includes(script))
   if (entries.length === 0) throw new BuildCheckError(`${script} uses TUFAST_STRINGS but is not in manifest.json`)
 

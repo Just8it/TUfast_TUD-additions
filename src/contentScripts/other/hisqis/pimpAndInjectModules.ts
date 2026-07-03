@@ -1,7 +1,6 @@
-let hisqisInjectStrings = globalThis.TUFAST_STRINGS.hisqis
+let hisqisInjectStrings: typeof globalThis.TUFAST_STRINGS.hisqis
 ;(async () => {
-  await globalThis.TUFAST_STRINGS_READY
-  hisqisInjectStrings = globalThis.TUFAST_STRINGS.hisqis
+  hisqisInjectStrings = (await globalThis.TUFAST_STRINGS_READY).hisqis
 
   const form = document.getElementsByTagName('form')[0]
   const table = document.querySelector('table[summary="Liste der Stammdaten des Studierenden"]')
