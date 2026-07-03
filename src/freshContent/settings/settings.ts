@@ -78,7 +78,6 @@ export const getSettings = () =>
       icon: 'IconLanguage',
       settingsPage: 'LanguageSelect',
       category: 'personalization',
-      settingType: 'language',
-      tag: 'Beta'
+      settingType: 'language'
     }
   ] as const satisfies readonly Setting[]

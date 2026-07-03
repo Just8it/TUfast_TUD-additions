@@ -1,5 +1,6 @@
 {
   "localeName": "English",
+  "localeStatus": "beta",
   "manifest": {
     "extensionName": "TUfast TU Dresden",
     "extensionDescription": "The productivity tool for TU Dresden students",

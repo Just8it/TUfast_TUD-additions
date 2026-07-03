@@ -75,8 +75,12 @@ export function getLocaleMessages(locale: Locale = currentLocale) {
 export function getAvailableLocales() {
   const resolvedAuto = getLocaleMessages(getBrowserDefaultLocale()).localeName
   return [
-    { locale: 'auto', label: `Auto (${resolvedAuto})` },
-    ...Object.entries(messages).map(([locale, message]) => ({ locale, label: message.localeName }))
+    { locale: 'auto', label: `Auto (${resolvedAuto})`, status: undefined },
+    ...Object.entries(messages).map(([locale, message]) => ({
+      locale,
+      label: message.localeName,
+      status: message.localeStatus
+    }))
   ]
 }
 
