@@ -26,14 +26,14 @@ import { DataTable } from 'simple-datatables'
   // title element
   const title = document.createElement('h3')
   title.classList.add('table-header__title')
-  title.innerText = strings.overview || ''
+  title.innerText = strings.overview || 'Deine Noten\u00fcbersicht'
 
   // flex div to display small color helpers
   const colorHelpers = document.createElement('div')
   colorHelpers.classList.add('table-header__helpers')
 
   // create small color helpers
-  const descriptors = JSON.parse(strings.descriptors || '[]')
+  const descriptors = JSON.parse(strings.descriptors || '["Modul","Bestandene Prüfung","Verhauene Prüfung"]')
   for (const [i, descriptor] of descriptors.entries()) {
     const colorHelper = document.createElement('div')
     colorHelper.classList.add('table-header__helper')
