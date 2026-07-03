@@ -44,11 +44,16 @@ function collectMsgKeys(value, keys = new Set()) {
   return keys
 }
 
-function runContentScriptStrings(locale) {
+async function runContentScriptStrings(browserLocale, storedLocale) {
   const sandbox = {
     chrome: {
       i18n: {
-        getUILanguage: () => locale
+        getUILanguage: () => browserLocale
+      },
+      storage: {
+        local: {
+          get: async () => ({ locale: storedLocale })
+        }
       }
     }
   }
@@ -56,6 +61,7 @@ function runContentScriptStrings(locale) {
   vm.runInNewContext(fs.readFileSync(path.join(buildDir, stringsFile), 'utf8'), sandbox, {
     filename: stringsFile
   })
+  await sandbox.TUFAST_STRINGS_READY
   return sandbox.TUFAST_STRINGS
 }
 
@@ -83,15 +89,17 @@ for (const key of collectMsgKeys(manifest)) {
   }
 }
 
-const germanStrings = runContentScriptStrings('de-DE')
-const englishStrings = runContentScriptStrings('en-US')
-const fallbackStrings = runContentScriptStrings('zz-ZZ')
+const germanStrings = await runContentScriptStrings('de-DE')
+const englishStrings = await runContentScriptStrings('en-US')
+const fallbackStrings = await runContentScriptStrings('zz-ZZ')
+const storedEnglishStrings = await runContentScriptStrings('de-DE', 'en')
 const requiredContentSections = collectContentSections()
 
 for (const [locale, strings] of [
   ['de-DE', germanStrings],
   ['en-US', englishStrings],
-  ['zz-ZZ', fallbackStrings]
+  ['zz-ZZ', fallbackStrings],
+  ['stored en', storedEnglishStrings]
 ]) {
   for (const section of requiredContentSections) {
     if (!strings?.[section]) throw new BuildCheckError(`${stringsFile} did not populate ${section} for ${locale}`)
@@ -100,6 +108,10 @@ for (const [locale, strings] of [
 
 if (JSON.stringify(fallbackStrings) !== JSON.stringify(germanStrings)) {
   throw new BuildCheckError('unknown browser locale did not fall back to German content strings')
+}
+
+if (JSON.stringify(storedEnglishStrings) !== JSON.stringify(englishStrings)) {
+  throw new BuildCheckError('stored English locale did not override German browser locale')
 }
 
 const scriptsUsingStrings = walkFiles(path.join(buildDir, 'contentScripts'))

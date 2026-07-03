@@ -1,4 +1,4 @@
-const opalSnowflakeStrings = globalThis.TUFAST_STRINGS.opal
+let opalSnowflakeStrings = globalThis.TUFAST_STRINGS.opal
 // Global state to persist across SPA navigations
 const globalSnowflakeState: {
   container: HTMLDivElement | undefined
@@ -135,6 +135,9 @@ async function injectSnowflakeControl() {
 
 // Initialize and watch for changes
 ;(async () => {
+  await globalThis.TUFAST_STRINGS_READY
+  opalSnowflakeStrings = globalThis.TUFAST_STRINGS.opal
+
   // Wait a bit for the logo to be injected first
   await new Promise((resolve) => setTimeout(resolve, 100))
 

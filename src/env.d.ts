@@ -4,9 +4,11 @@ type TufastContentStrings = typeof import('./i18n/locales/de.json').default.cont
 
 declare global {
   var TUFAST_STRINGS: TufastContentStrings
+  var TUFAST_STRINGS_READY: Promise<TufastContentStrings>
 
   interface Window {
     TUFAST_STRINGS: TufastContentStrings
+    TUFAST_STRINGS_READY: Promise<TufastContentStrings>
   }
 
   interface ImportMeta {
