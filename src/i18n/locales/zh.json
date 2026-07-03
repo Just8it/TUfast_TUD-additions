@@ -1,5 +1,6 @@
 {
   "localeName": "简体中文",
+  "localeStatus": "beta",
   "manifest": {
     "extensionName": "TUfast TU Dresden",
     "extensionDescription": "TU Dresden 学生的效率工具",
@@ -15,6 +16,7 @@
     "website": "网站",
     "team": "团队",
     "github": "GitHub",
+    "buyMeACoffee": "BuyMeACoffee",
     "supportUs": "支持我们",
     "privacy": "隐私"
   },
@@ -88,6 +90,7 @@
         "deleteLogin": "删除登录信息",
         "twoFactorTitle": "双因素认证 (2FA)",
         "twoFactorHelp": "自动登录也支持 2FA。你可以在这里保存 TOTP 密钥。该密钥使用 Base32 编码，例如如下所示：",
+        "totpExample": "MHSTKUIKTTHPQAZNVWQBJE5YQ2WACQQP",
         "twoFactorLink": "你可以在这里找到更多信息和完整的设置指南。↗",
         "saveKey": "在本地保存密钥",
         "deleteKey": "删除密钥"
