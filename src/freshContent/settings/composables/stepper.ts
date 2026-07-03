@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import steps from '../onboarding'
+import { onboardingStepCount } from '../onboarding'
 
 import { useChrome } from '../composables/chrome'
 
@@ -18,7 +18,7 @@ export const useStepper = () => ({
 
 const stepWidth = ref(1)
 const currentOnboardingStep = ref(1)
-const stepsCount = ref(steps.length)
+const stepsCount = ref(onboardingStepCount)
 const percentDone = ref(0)
 const hideWelcome = ref(false)
 
