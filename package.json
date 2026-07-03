@@ -20,6 +20,8 @@
     "verify:locales": "node scripts/verify-locales.mjs",
     "verify:build": "npm run verify:locales && node scripts/verify-build.mjs"
   },
+  "_comment:verify:locales": "Checks locale JSON keys, value shapes, placeholders, plural segments, and literal t('...') source references.",
+  "_comment:verify:build": "Run after build; checks generated manifest messages, content-script string injection, fallback locale, and manifest script order.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TUfast-TUD/TUfast_TUD.git"
