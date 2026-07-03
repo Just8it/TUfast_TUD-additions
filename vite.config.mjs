@@ -39,6 +39,12 @@ function readLocaleMessages() {
   )
 }
 
+function readContentScriptMessages() {
+  return Object.fromEntries(
+    Object.entries(readLocaleMessages()).map(([locale, localeMessages]) => [locale, localeMessages.content])
+  )
+}
+
 function buildInputs() {
   return Object.fromEntries(
     walkFiles(srcDir)
@@ -149,10 +155,9 @@ function inlineContentScriptStrings() {
       const stringsChunk = bundle['i18n/contentScriptStrings.js']
       if (!stringsChunk || stringsChunk.type !== 'chunk') return
 
-      stringsChunk.code =
-        `const TUFAST_LOCALES=${JSON.stringify(readLocaleMessages())};` +
-        'const TUFAST_BROWSER_LOCALE=chrome.i18n?.getUILanguage?.().toLowerCase().split("-")[0];' +
-        'globalThis.TUFAST_STRINGS=(TUFAST_LOCALES[TUFAST_BROWSER_LOCALE]||TUFAST_LOCALES.de).content;'
+      const marker = /\b__TUFAST_CONTENT_LOCALES__\b/
+      if (!marker.test(stringsChunk.code)) throw new Error(`__TUFAST_CONTENT_LOCALES__ not found in ${stringsChunk.fileName}`)
+      stringsChunk.code = stringsChunk.code.replace(marker, JSON.stringify(readContentScriptMessages()))
     }
   }
 }

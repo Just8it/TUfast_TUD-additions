@@ -13,8 +13,10 @@
       >output.dd Projektschau</a
     >
     {{ t('settings.pages.about.supportersEnd') }}
-    <a href="https://www.buymeacoffee.com/olihausdoerfer" target="_blank" class="txt-link">BuyMeACoffee</a>.
-    {{ t('settings.pages.about.nextStep') }} <br /><br />
+    <a href="https://www.buymeacoffee.com/olihausdoerfer" target="_blank" class="txt-link">{{
+      t('common.buyMeACoffee')
+    }}</a
+    >. {{ t('settings.pages.about.nextStep') }} <br /><br />
     <span class="txt-bold">{{ t('settings.pages.about.claim') }}</span>
   </p>
   <br />

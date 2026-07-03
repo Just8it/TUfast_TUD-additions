@@ -1,6 +1,6 @@
 import type { NotificationNamespace } from '../notification'
 
-const opalParseCoursesStrings = globalThis.TUFAST_STRINGS.opal
+let opalParseCoursesStrings: typeof globalThis.TUFAST_STRINGS.opal
 
 interface Course {
   name: string
@@ -68,6 +68,8 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
 }
 
 ;(async () => {
+  opalParseCoursesStrings = (await globalThis.TUFAST_STRINGS_READY).opal
+
   const notification: NotificationNamespace = await import(
     chrome.runtime.getURL('contentScripts/other/notification.js')
   )

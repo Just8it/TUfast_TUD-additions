@@ -40,6 +40,7 @@ export default defineComponent({
   },
   setup() {
     const { getChromeLocalStorage, setChromeLocalStorage } = useChrome()
+    const contactEmail = 'frage@tu-fast.de'
     const clicked = ref(false)
     const selectedStudy = ref(t('settings.faculty.default'))
 
@@ -49,7 +50,7 @@ export default defineComponent({
 
     const setStudySubject = async (studiengang: string) => {
       if (studiengang === 'addStudiengang') {
-        window.open(`mailto:frage@tu-fast.de?Subject=${t('settings.faculty.mailSubject')}`, '_blank')
+        window.open(`mailto:${contactEmail}?Subject=${t('settings.faculty.mailSubject')}`, '_blank')
         return
       }
       selectedStudy.value = studiengang

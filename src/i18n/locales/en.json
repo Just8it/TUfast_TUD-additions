@@ -1,5 +1,6 @@
 {
   "localeName": "English",
+  "localeStatus": "beta",
   "manifest": {
     "extensionName": "TUfast TU Dresden",
     "extensionDescription": "The productivity tool for TU Dresden students",
@@ -15,6 +16,7 @@
     "website": "Website",
     "team": "Team",
     "github": "GitHub",
+    "buyMeACoffee": "BuyMeACoffee",
     "supportUs": "Support us",
     "privacy": "Privacy"
   },
@@ -88,6 +90,7 @@
         "deleteLogin": "Delete login",
         "twoFactorTitle": "Two-factor authentication (2FA)",
         "twoFactorHelp": "Automatic Login also supports 2FA. Here you can save your TOTP secret key. The key is Base32 encoded and looks like this, for example:",
+        "totpExample": "MHSTKUIKTTHPQAZNVWQBJE5YQ2WACQQP",
         "twoFactorLink": "Here you can find more information and a full setup guide. ->",
         "saveKey": "Save key locally",
         "deleteKey": "Delete key"

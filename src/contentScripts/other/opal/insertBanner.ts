@@ -1,5 +1,7 @@
-const opalBannerStrings = globalThis.TUFAST_STRINGS.opal
+let opalBannerStrings: typeof globalThis.TUFAST_STRINGS.opal
 ;(async () => {
+  opalBannerStrings = (await globalThis.TUFAST_STRINGS_READY).opal
+
   const {
     bannersShown,
     savedClickCounter,

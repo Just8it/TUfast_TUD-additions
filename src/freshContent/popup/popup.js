@@ -1,11 +1,11 @@
 import studiengangConfig from '../studies.json'
-import { t } from '../../i18n'
+import { initLocale, t } from '../../i18n'
 import '../../styles/popup.scss'
 import '../../styles/components/switch.scss'
 import '../../styles/components/share.scss'
 
-const shareHTML = t('popup.shareHtml')
-const bananaHTML = t('popup.bananaHtml')
+let shareHTML = ''
+let bananaHTML = ''
 
 const starRatingSettings = {
   // initial rating value
@@ -39,6 +39,9 @@ const dropdownUpdateId = '56tzoguhjk'
 
 // TODO
 window.onload = async () => {
+  await initLocale()
+  shareHTML = t('popup.shareHtml')
+  bananaHTML = t('popup.bananaHtml')
   setStaticText()
 
   // get things from storage

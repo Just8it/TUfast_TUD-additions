@@ -37,35 +37,34 @@ After developing:
 
 ## Strings and locales
 
-User-facing strings live in `src/i18n/locales/*.json`. These JSON files are the source of truth. German (`de.json`) is the complete fallback locale and the key source of truth. New locale files must match the German key structure:
+### Overview
 
-```json
-{
-  "localeName": "English",
-  "manifest": {
-    "extensionName": "TUfast TU Dresden",
-    "extensionDescription": "The productivity tool for TU Dresden students",
-    "commandOpenOpal": "Open OPAL",
-    "commandOpenOwa": "Open mail (OWA)"
-  }
-}
-```
+User-facing strings are stored in `src/i18n/locales/*.json`. Do not write user-facing copy inline in Vue components, content scripts, popup code, background code, or shared modules.
 
-Do not add user-facing text directly inside Vue components, content scripts, background code, popup code, or shared modules. Put new copy into the appropriate locale file instead.
+German (`de.json`) is the fallback locale and the reference for the locale structure.
 
-The build discovers locale files automatically. It also generates browser `_locales/<lang>/messages.json` files from each locale's `manifest` block, so do not add or edit `_locales` JSON files by hand.
+### Adding or changing text
 
-Use `t('path.to.string')` for Vue, popup, background, and shared module text. Manifest-loaded content scripts read from `globalThis.TUFAST_STRINGS`, populated from the locale's `content` block.
+1. Add the string to `src/i18n/locales/de.json`.
+2. Add the same key to every other locale.
+3. Keep the key structure identical across all locale files.
+4. Use `t('path.to.string')` in Vue pages, popup code, background code, and shared modules.
+5. Put manifest-loaded content script strings in the locale’s `content` block. They are exposed through `globalThis.TUFAST_STRINGS`.
+6. Run `npm run test`.
 
-ESLint fails on raw text in Vue templates. If you add user-facing copy, add it to every locale instead of writing it inline.
+### Adding a language
 
-To add a language, copy `de.json` to `<language>.json`, translate the values, keep every key unchanged, and run `npm run test`. The normal Prettier check walks `src`, including locale JSON files. Do not edit generated `build/_locales` files.
+1. Copy `src/i18n/locales/de.json` to `src/i18n/locales/<language>.json`.
+2. Translate values only.
+3. Keep all keys unchanged.
+4. Run `npm run test`.
 
-`npm run verify:locales` checks that every locale has the same keys, value shapes, interpolation placeholders, and plural segments as German. It also checks literal `t('path.to.string')` calls in source files. `npm run verify:build` must run after `npm run build`; it checks generated manifest messages and content-script string injection. `npm run test` runs both checks in CI order.
+### Locale behavior
 
-Do not import extension modules directly from classic manifest-loaded content scripts.
+The language setting defaults to `auto`: use the browser UI language when supported, otherwise fall back to German. Manual settings override `auto`.
 
-The language setting defaults to `auto`. Auto uses the browser UI language when a matching locale exists and falls back to German otherwise. Manual user choices must not be overwritten on startup.
+The build generates browser `_locales/<lang>/messages.json` from each locale’s `manifest` block. Locale checks are part of `npm run test`.
+
 
 ## Known peculiarities and bugs
 - `Unchecked runtime.lastError: The message port closed before a response was received.` Promisifying chrome.runtime.sendMessage({...}) doesnt work, because when you define a callback (Promise.resolve) sendMessage will wait until sendResponse is called in the message handler. It just stalls execution and then dies if it's never called. **Solutions:** 1) Unpromisify sendMessage. 2) Always return a value (return true is fine).

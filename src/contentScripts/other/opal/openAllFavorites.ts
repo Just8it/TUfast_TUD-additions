@@ -1,5 +1,7 @@
-const opalOpenAllFavoritesStrings = globalThis.TUFAST_STRINGS.opal
-;(function () {
+let opalOpenAllFavoritesStrings: typeof globalThis.TUFAST_STRINGS.opal
+;(async function () {
+  opalOpenAllFavoritesStrings = (await globalThis.TUFAST_STRINGS_READY).opal
+
   // Main injection logic
   async function injectOpenAllFavoritesButton() {
     // Check if button already exists

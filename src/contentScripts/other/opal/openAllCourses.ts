@@ -1,5 +1,7 @@
-const opalOpenAllCoursesStrings = globalThis.TUFAST_STRINGS.opal
-;(function () {
+let opalOpenAllCoursesStrings: typeof globalThis.TUFAST_STRINGS.opal
+;(async function () {
+  opalOpenAllCoursesStrings = (await globalThis.TUFAST_STRINGS_READY).opal
+
   // Main injection logic
   async function injectOpenAllCoursesButton() {
     // Check if button already exists

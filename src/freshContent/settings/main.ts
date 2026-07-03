@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import Settings from './Settings.vue'
-import { i18n } from '../../i18n/vue'
-import { getLocale, initLocale, t } from '../../i18n'
+import { initLocale, t } from '../../i18n'
 import '../../styles/palette_new/palette_new.sass'
 // Import needed Icons from Tabler Vue
 import {
@@ -38,10 +37,9 @@ import {
   IconConfetti
 } from '@tabler/icons-vue'
 
-// Create the app instance
+// Load the stored locale before rendering translated settings text.
 async function main() {
   await initLocale()
-  i18n.global.locale = getLocale()
   document.title = t('settings.documentTitle')
   const app = createApp(Settings)
 
@@ -78,8 +76,6 @@ async function main() {
   app.component('IconLogin2', IconLogin2)
   app.component('IconConfetti', IconConfetti)
 
-  // Mount your app
-  app.use(i18n)
   app.mount('#app')
 }
 

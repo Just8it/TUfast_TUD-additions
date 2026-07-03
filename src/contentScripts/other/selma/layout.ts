@@ -1,4 +1,4 @@
-const selmaLayoutStrings = globalThis.TUFAST_STRINGS.selma
+let selmaLayoutStrings: typeof globalThis.TUFAST_STRINGS.selma
 const currentView = document.location.pathname
 // Regex for extracting Programm name and arguments from a popup Script
 // This is used to get the URL which would be opened in a popup
@@ -7,7 +7,7 @@ const popupScriptsRegex = /dl_popUp\("\/scripts\/mgrqispi\.dll\?APPNAME=CampusNe
 // A promise that resolves to the setting value of `improveSelma`
 const improveSelmaEnabledPromise: Promise<boolean> = chrome.storage.local
   .get(['improveSelma'])
-  .then((s) => s.improveSelma)
+  .then((s) => s.improveSelma ?? true)
 
 function scriptToURL(script: string): string {
   const matches = script.match(popupScriptsRegex)!
@@ -266,6 +266,8 @@ async function createCreditsBanner() {
 
 // Apply all custom changes once documentd loaded
 ;(async () => {
+  selmaLayoutStrings = (await globalThis.TUFAST_STRINGS_READY).selma
+
   if (document.readyState !== 'loading') {
     await eventListener()
   } else {

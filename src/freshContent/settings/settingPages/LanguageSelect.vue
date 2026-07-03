@@ -8,7 +8,8 @@
       :class="{ 'language-select__option--selected': selected === option.locale }"
       @click="selectLocale(option.locale)"
     >
-      {{ option.label }}
+      <span>{{ option.label }}</span>
+      <span v-if="option.status === 'beta'" class="language-select__status">{{ option.status }}</span>
     </button>
   </div>
 </template>
@@ -60,6 +61,9 @@ export default defineComponent({
     background: transparent
     color: hsl(var(--clr-text))
     cursor: pointer
+    display: inline-flex
+    align-items: center
+    gap: 8px
     font: inherit
     padding: 8px 12px
 
@@ -67,4 +71,13 @@ export default defineComponent({
       border-color: hsl(var(--clr-accent))
       background: hsla(var(--clr-accent), .2)
       font-weight: 600
+
+  &__status
+    border-radius: var(--brd-rad-sm)
+    background: hsl(var(--clr-accent))
+    color: hsl(var(--clr-bg))
+    font-size: .75em
+    font-weight: 600
+    padding: 2px 6px
+    text-transform: capitalize
 </style>

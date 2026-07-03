@@ -206,8 +206,8 @@ import DoneSetup from './onboardingPages/08_DoneSetup.vue'
 
 // configurations
 import { t } from '../../i18n'
-import settings from './settings'
-import onboardingSteps from './onboarding'
+import { getSettings } from './settings'
+import { getOnboardingSteps } from './onboarding'
 
 // composables
 import { useChrome } from './composables/chrome'
@@ -242,6 +242,8 @@ export default defineComponent({
     SearchengineSetup
   },
   setup() {
+    const settings = getSettings()
+    const onboardingSteps = getOnboardingSteps()
     const { getChromeLocalStorage, setChromeLocalStorage } = useChrome()
     const { hideWelcome, currentOnboardingStep } = useStepper()
     const openSettingId = ref<string | null>(null)

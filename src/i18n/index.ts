@@ -18,7 +18,7 @@ export const messages = Object.fromEntries(
   ])
 ) as Record<Locale, LocaleMessages>
 
-let currentLocaleSetting: LocaleSetting = readStoredLocaleSetting()
+let currentLocaleSetting: LocaleSetting = defaultLocaleSetting
 let currentLocale: Locale = resolveLocale(currentLocaleSetting)
 
 function isLocale(locale: unknown): locale is Locale {
@@ -27,18 +27,6 @@ function isLocale(locale: unknown): locale is Locale {
 
 function isLocaleSetting(locale: unknown): locale is LocaleSetting {
   return locale === 'auto' || isLocale(locale)
-}
-
-function readStoredLocaleSetting(): LocaleSetting {
-  try {
-    if (typeof localStorage !== 'undefined') {
-      const locale = localStorage.getItem('locale')
-      if (isLocaleSetting(locale)) return locale
-    }
-  } catch (e) {
-    // Ignore storage access errors and use German.
-  }
-  return defaultLocaleSetting
 }
 
 export function getBrowserDefaultLocale(): Locale {
@@ -66,11 +54,6 @@ export function setLocale(locale: LocaleSetting) {
   if (!isLocaleSetting(locale)) return
   currentLocaleSetting = locale
   currentLocale = resolveLocale(locale)
-  try {
-    if (typeof localStorage !== 'undefined') localStorage.setItem('locale', locale)
-  } catch (e) {
-    // Ignore storage access errors; the in-memory locale still applies.
-  }
 }
 
 export async function initLocale() {
@@ -92,13 +75,13 @@ export function getLocaleMessages(locale: Locale = currentLocale) {
 export function getAvailableLocales() {
   const resolvedAuto = getLocaleMessages(getBrowserDefaultLocale()).localeName
   return [
-    { locale: 'auto', label: `Auto (${resolvedAuto})` },
-    ...Object.entries(messages).map(([locale, message]) => ({ locale, label: message.localeName }))
+    { locale: 'auto', label: `Auto (${resolvedAuto})`, status: undefined },
+    ...Object.entries(messages).map(([locale, message]) => ({
+      locale,
+      label: message.localeName,
+      status: message.localeStatus
+    }))
   ]
-}
-
-export function getBrowserLocaleMessages() {
-  return getLocaleMessages(getBrowserDefaultLocale())
 }
 
 export function t(key: string, params?: Record<string, unknown>, plural?: number) {
