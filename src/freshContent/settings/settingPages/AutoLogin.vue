@@ -74,7 +74,7 @@
           border-radius: var(--brd-rad-sm);
           background-color: hsl(var(--clr-btnhov));
         "
-        >MHSTKUIKTTHPQAZNVWQBJE5YQ2WACQQP</span
+        >{{ t('settings.pages.autoLogin.totpExample') }}</span
       >
     </p>
     <a href="https://github.com/TUfast-TUD/TUfast_TUD/blob/main/docs/2FA.md" target="_blank">{{

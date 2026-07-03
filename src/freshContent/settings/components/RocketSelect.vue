@@ -95,6 +95,7 @@ export default defineComponent({
     }
 
     const getLink = (rocketObj: any): string | undefined => {
+      // rockets.json is the German fallback; locale files override rocket text and share URLs.
       const key = `settings.rocketLinks.${rocketObj.id}`
       const value = t(key)
       if (value !== key) return value

@@ -15,6 +15,7 @@
     "website": "Website",
     "team": "Team",
     "github": "GitHub",
+    "buyMeACoffee": "BuyMeACoffee",
     "supportUs": "Unterstütze uns",
     "privacy": "Datenschutz"
   },
@@ -88,6 +89,7 @@
         "deleteLogin": "Login löschen",
         "twoFactorTitle": "Zwei-Faktor-Authentifizierung (2FA)",
         "twoFactorHelp": "Das Automatische Anmelden unterstützt auch 2FA. Hier kannst du dafür deinen TOTP Secret-Key speichern. Der Key ist Base32 enkodiert und sieht zum Beispiel so aus:",
+        "totpExample": "MHSTKUIKTTHPQAZNVWQBJE5YQ2WACQQP",
         "twoFactorLink": "Hier findest du mehr Informationen und eine vollständige Anleitung zur Einrichtung. ↗",
         "saveKey": "Key lokal speichern",
         "deleteKey": "Key löschen"

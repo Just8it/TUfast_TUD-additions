@@ -55,11 +55,7 @@ module.exports = {
           'Jan Polzer',
           'Steen Thomsen',
           'DigitalAcceleratorProgramm des Stifterverbands',
-          'output.dd Projektschau',
-          'BuyMeACoffee',
-          'frage@tu-fast.de',
-          'TUfast TU Dresden',
-          'MHSTKUIKTTHPQAZNVWQBJE5YQ2WACQQP'
+          'output.dd Projektschau'
         ]
       }
     ]
