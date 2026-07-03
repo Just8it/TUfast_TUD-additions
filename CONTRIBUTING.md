@@ -37,15 +37,34 @@ After developing:
 
 ## Strings and locales
 
-User-facing strings live in `src/i18n/locales/*.json`. German (`de.json`) is the fallback locale and the key source of truth; use it as the reference for the current locale structure. If you add user-facing copy, add it to every locale instead of writing it inline in Vue components, content scripts, popup code, background code, or shared modules.
+### Overview
 
-The language setting defaults to `auto`: TUfast uses the browser UI language when that locale exists and falls back to German otherwise. A manual language choice in settings overrides `auto` and must be respected everywhere.
+User-facing strings are stored in `src/i18n/locales/*.json`. Do not write user-facing copy inline in Vue components, content scripts, popup code, background code, or shared modules.
 
-Use `t('path.to.string')` for Vue, popup, background, and shared module text. TUfast intentionally uses this custom i18n helper instead of `vue-i18n` so the same locale logic works in Vue pages, popup, background, and content scripts. Manifest-loaded content scripts read from `globalThis.TUFAST_STRINGS`, populated from the locale's `content` block.
+German (`de.json`) is the fallback locale and the reference for the locale structure.
 
-To add a language, copy `de.json` to `<language>.json`, translate the values, keep every key unchanged, and run `npm run test`.
+### Adding or changing text
 
-The build generates browser `_locales/<lang>/messages.json` files from each locale's `manifest` block. The locale and build checks are part of `npm run test`.
+1. Add the string to `src/i18n/locales/de.json`.
+2. Add the same key to every other locale.
+3. Keep the key structure identical across all locale files.
+4. Use `t('path.to.string')` in Vue pages, popup code, background code, and shared modules.
+5. Put manifest-loaded content script strings in the locale’s `content` block. They are exposed through `globalThis.TUFAST_STRINGS`.
+6. Run `npm run test`.
+
+### Adding a language
+
+1. Copy `src/i18n/locales/de.json` to `src/i18n/locales/<language>.json`.
+2. Translate values only.
+3. Keep all keys unchanged.
+4. Run `npm run test`.
+
+### Locale behavior
+
+The language setting defaults to `auto`: use the browser UI language when supported, otherwise fall back to German. Manual settings override `auto`.
+
+The build generates browser `_locales/<lang>/messages.json` from each locale’s `manifest` block. Locale checks are part of `npm run test`.
+
 
 ## Known peculiarities and bugs
 - `Unchecked runtime.lastError: The message port closed before a response was received.` Promisifying chrome.runtime.sendMessage({...}) doesnt work, because when you define a callback (Promise.resolve) sendMessage will wait until sendResponse is called in the message handler. It just stalls execution and then dies if it's never called. **Solutions:** 1) Unpromisify sendMessage. 2) Always return a value (return true is fine).
