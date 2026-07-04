@@ -52,7 +52,8 @@ export default defineComponent({
 
 <style lang="sass" scoped>
 .language-select
-  display: flex
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr))
   gap: 8px
 
   &__option
@@ -61,11 +62,16 @@ export default defineComponent({
     background: transparent
     color: hsl(var(--clr-text))
     cursor: pointer
-    display: inline-flex
+    display: flex
     align-items: center
+    justify-content: center
     gap: 8px
     font: inherit
+    min-height: 48px
+    min-width: 0
+    overflow-wrap: anywhere
     padding: 8px 12px
+    text-align: center
 
     &--selected
       border-color: hsl(var(--clr-accent))
@@ -78,6 +84,7 @@ export default defineComponent({
     color: hsl(var(--clr-bg))
     font-size: .75em
     font-weight: 600
+    flex-shrink: 0
     padding: 2px 6px
     text-transform: capitalize
 </style>
