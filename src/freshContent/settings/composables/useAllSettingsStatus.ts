@@ -61,20 +61,21 @@ const checkAllSettings = async (platform: string = 'zih') => {
     loading.value = true
     error.value = null
 
-    const result = await new Promise<SettingsStatus>((resolve) => {
+    const result = await new Promise<Partial<SettingsStatus>>((resolve) => {
       chrome.runtime.sendMessage(
         {
           cmd: 'check_all_settings',
           platform: platform
         },
         (response) => {
-          resolve(response)
+          resolve(response ?? {})
         }
       )
     })
 
     const { default: studies } = await import('../../studies.json')
     settings.value = {
+      ...settings.value,
       ...result,
       faculty: facultyName(result.faculty || 'general', studies),
       language: languageName()
