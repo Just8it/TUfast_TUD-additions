@@ -23,7 +23,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         availableRockets: ['default'],
         selectedRocketIcon: JSON.stringify(rockets.default),
         theme: 'system',
-        // 'auto' uses the browser UI language when supported, otherwise German.
+        // 'auto' uses the browser UI language when supported, otherwise English.
         locale: 'auto',
         studiengang: 'general',
         hisqisPimpedTable: true,

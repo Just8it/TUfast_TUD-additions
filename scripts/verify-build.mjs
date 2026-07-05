@@ -106,8 +106,8 @@ for (const [locale, strings] of [
   }
 }
 
-if (JSON.stringify(fallbackStrings) !== JSON.stringify(germanStrings)) {
-  throw new BuildCheckError('unknown browser locale did not fall back to German content strings')
+if (JSON.stringify(fallbackStrings) !== JSON.stringify(englishStrings)) {
+  throw new BuildCheckError('unknown browser locale did not fall back to English content strings')
 }
 
 if (JSON.stringify(storedEnglishStrings) !== JSON.stringify(englishStrings)) {

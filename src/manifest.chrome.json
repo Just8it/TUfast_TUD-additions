@@ -1,6 +1,6 @@
 {
   "name": "__MSG_extensionName__",
-  "default_locale": "de",
+  "default_locale": "en",
   "_comment": "The version number is populated during build time, please adjust version number in package.json",
   "description": "__MSG_extensionDescription__",
   "permissions": ["storage", "system.cpu", "alarms"],

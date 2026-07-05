@@ -5,7 +5,7 @@ type ContentMessages = typeof de.content
 declare const __TUFAST_CONTENT_LOCALES__: Record<string, ContentMessages>
 
 const contentLocales = __TUFAST_CONTENT_LOCALES__
-const fallbackLocale = 'de'
+const fallbackLocale = 'en'
 
 function getBrowserLocale() {
   const raw =

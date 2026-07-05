@@ -2,13 +2,13 @@ import de from './locales/de.json'
 
 type LocaleMessages = typeof de
 
-// German is the typed fallback; every extra locale is discovered from this folder.
+// German is the typed reference; unsupported runtime locales fall back to English.
 const localeModules = import.meta.glob<LocaleMessages>('./locales/*.json', { eager: true, import: 'default' })
 
 export type Locale = string
 export type LocaleSetting = 'auto' | Locale
 
-export const fallbackLocale: Locale = 'de'
+export const fallbackLocale: Locale = 'en'
 export const defaultLocaleSetting: LocaleSetting = 'auto'
 
 export const messages = Object.fromEntries(
@@ -63,7 +63,7 @@ export async function initLocale() {
       if (isLocaleSetting(locale)) setLocale(locale)
     }
   } catch (e) {
-    // German remains the fallback if extension storage is unavailable.
+    // English remains the fallback if extension storage is unavailable.
   }
   return currentLocale
 }

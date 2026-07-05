@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const localeDir = path.join(rootDir, 'src', 'i18n', 'locales')
-const fallbackLocale = 'de'
+const referenceLocale = 'de'
 
 class LocaleCheckError extends Error {
   constructor(message) {
@@ -103,21 +103,21 @@ const localeFiles = fs
   .filter((fileName) => fileName.endsWith('.json'))
   .sort()
 
-if (!localeFiles.includes(`${fallbackLocale}.json`)) {
-  throw new LocaleCheckError(`${fallbackLocale}.json is required`)
+if (!localeFiles.includes(`${referenceLocale}.json`)) {
+  throw new LocaleCheckError(`${referenceLocale}.json is required`)
 }
 
 const locales = Object.fromEntries(
   localeFiles.map((fileName) => [path.basename(fileName, '.json'), readJson(path.join(localeDir, fileName))])
 )
-const fallbackMessages = locales[fallbackLocale]
+const referenceMessages = locales[referenceLocale]
 
 for (const [locale, messages] of Object.entries(locales)) {
-  compareValue(locale, '', messages, fallbackMessages)
+  compareValue(locale, '', messages, referenceMessages)
 }
 
 for (const { key, filePath, line } of collectTranslationKeys()) {
-  if (typeof getMessage(key, fallbackMessages) !== 'string') {
+  if (typeof getMessage(key, referenceMessages) !== 'string') {
     throw new LocaleCheckError(`${path.relative(rootDir, filePath)}:${line} uses missing key ${key}`)
   }
 }

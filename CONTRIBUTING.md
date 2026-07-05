@@ -34,6 +34,7 @@ After developing:
 - **Build tool**: [Vite](https://vite.dev/). Run `npm run dev` to compile sass and ts files.
 - **CSS-Preprocessor**: We are using [SASS](https://sass-lang.com/).
 - **Code style and linting**: We are using ESlint and prettier. Run `npm run test` to check your code style and linting before pushing code. Wrong formatting will result in a failing CI. You should configure your editor to automatically format on save with prettier for which VSCode provides [this extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode).
+- **Localization**: TUfast uses the custom `src/i18n` helper with JSON locale files in `src/i18n/locales/*.json`, so the same translations work in Vue pages, popup, background, and content scripts.
 
 ## Strings and locales
 
@@ -41,7 +42,7 @@ After developing:
 
 User-facing strings are stored in `src/i18n/locales/*.json`. Do not write user-facing copy inline in Vue components, content scripts, popup code, background code, or shared modules.
 
-German (`de.json`) is the fallback locale and the reference for the locale structure.
+German (`de.json`) is the reference for the locale structure. Unsupported runtime locales fall back to English.
 
 ### Adding or changing text
 
@@ -61,7 +62,7 @@ German (`de.json`) is the fallback locale and the reference for the locale struc
 
 ### Locale behavior
 
-The language setting defaults to `auto`: use the browser UI language when supported, otherwise fall back to German. Manual settings override `auto`.
+The language setting defaults to `auto`: use the browser UI language when supported, otherwise fall back to English. Manual settings override `auto`.
 
 The build generates browser `_locales/<lang>/messages.json` from each locale’s `manifest` block. Locale checks are part of `npm run test`.
 
