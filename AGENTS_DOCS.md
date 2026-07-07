@@ -1,0 +1,28 @@
+# AGENTS_DOCS.md
+
+Knowledge base for agents. `AGENTS.md` directs agents to read this file at the start of every session — keep it short enough to stay worth that read. It carries gotchas, noteworthy bugfixes, major (design) decisions, and anything important for future development that does not fit in code comments or commit messages. Reference features, PRs, commits, GH issues, and GH discussions where appropriate — the link carries the full story, the entry here only the conclusion.
+
+Organized by topic, not chronology: entries state current truth. Edit or delete entries that are no longer accurate. Keep entries to a few lines — this file is loaded into every agent's context. Add topic headings as the project needs them.
+
+Routing rule: needed on every task → `AGENTS.md`. Durable area-specific knowledge or decision → here. Actionable work item → GitHub issue. Explanation of one specific change → commit/PR message.
+
+
+
+## Gotchas
+
+- Auto-login is the highest-risk area: failed-login loops have locked real ZIH student accounts (ZIH escalated; urgent fix in #156, recurrence in #160). Failure detection is literal string matching per portal (`findCredentialsError` in `src/contentScripts/login/*.ts`) plus a `loggedOut` cookie — there is no retry cap, so when a portal or the IdP changes its HTML, detection breaks silently and the loop runs (#148 broke this way for TOTP). Test the wrong-credentials path, not just the happy path.
+- The Chrome Web Store rejects manifest asset paths with a `./` prefix — upload of 8.1.1.2 failed until icon paths became bare (#161).
+- Firefox for Android has no `chrome.commands`; unguarded hotkey registration crashed the extension there (#166 — hence the `if (chrome.commands)` guard in `background.ts`). Mobile also renders the popup as a normal full page; known mobile issues are collected in #176.
+- Firefox classic content scripts have shown runtime cases where `globalThis.TUFAST_STRINGS_READY` is missing or unusable; OPAL header injections then crashed with `TUFAST_STRINGS` undefined during #194. Keep the generated fallback in `vite.config.mjs` and the build guard in `scripts/verify-build.mjs`, and smoke-test OPAL in Firefox when touching content-script i18n.
+- OPAL PDF handling: Chrome derives download filenames from the URL, so `pdfInInline` can give in-browser opening or the correct filename, not both (#82, wontfix).
+
+## Design decisions
+
+- Custom `src/i18n` runtime instead of `vue-i18n`: the dependency was tried during the i18n work (#191–#194) and removed because the custom helper already did everything — one clear mechanism preferred; rationale in `CONTRIBUTING.md`.
+
+
+## ToDo — improvement ideas
+
+Agent-suggested improvements to the project and codebase, recorded as context for later. Not a task tracker: when an idea becomes concrete and actionable, open a GitHub issue and link it here, or remove the entry.
+
+- Persistent retry counter as a failsafe for auto-login, capping attempts even when string detection breaks (maintainer-discussed in #156/#160; prototype in A-K-O-R-A's `feature.login-timouts` branch). Complements, not replaces, the string detection.
