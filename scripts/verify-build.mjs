@@ -139,6 +139,15 @@ for (const script of scriptsUsingStrings) {
     throw new BuildCheckError(`${script} has no fallback for missing TUFAST_STRINGS_READY`)
   }
 
+  if (
+    !/^globalThis\.TUFAST_STRINGS_READY=Promise\.resolve\(globalThis\.TUFAST_STRINGS_READY\)\.then\([^=]+=>[^|]+\|\|globalThis\.TUFAST_STRINGS\|\|/.test(
+      source
+    ) ||
+    !source.includes(',()=>globalThis.TUFAST_STRINGS||')
+  ) {
+    throw new BuildCheckError(`${script} fallback does not handle falsy or rejected TUFAST_STRINGS_READY`)
+  }
+
   if (directStringsAccess.test(sourceWithoutGeneratedFallback)) {
     throw new BuildCheckError(`${script} reads TUFAST_STRINGS directly instead of awaiting TUFAST_STRINGS_READY`)
   }
