@@ -45,6 +45,11 @@ function readContentScriptMessages() {
   )
 }
 
+function contentScriptStringsFallback() {
+  const messages = readContentScriptMessages()
+  return messages.en || Object.values(messages)[0] || {}
+}
+
 function buildInputs() {
   return Object.fromEntries(
     walkFiles(srcDir)
@@ -114,14 +119,18 @@ function keepContentScriptsClassic() {
     fileName.startsWith('contentScripts/') &&
     !fileName.startsWith('contentScripts/other/hisqis/gradeChart') &&
     !fileName.startsWith('contentScripts/other/hisqis/newTable')
+  const stringsFallbackPrefix = 'globalThis.TUFAST_STRINGS_READY=Promise.resolve(globalThis.TUFAST_STRINGS_READY).then('
 
   const rewrite = (code) => {
     const helperMatch = code.match(/^import\{t as ([\w$]+)\}from"[^"]*vite\/pkg\/preload-helper\.js";/)
     const withoutHelperImport = helperMatch ? code.slice(helperMatch[0].length) : code
-    return withoutHelperImport.replace(
+    const rewritten = withoutHelperImport.replace(
       /\b[\w$]+\(\(\)=>import\((chrome\.runtime\.getURL\([^)]*\))\),\[\]\)/g,
       'import($1)'
     )
+    if (!rewritten.includes('TUFAST_STRINGS_READY') || rewritten.startsWith(stringsFallbackPrefix)) return rewritten
+    const fallback = JSON.stringify(contentScriptStringsFallback())
+    return `globalThis.TUFAST_STRINGS_READY=Promise.resolve(globalThis.TUFAST_STRINGS_READY).then(s=>s||globalThis.TUFAST_STRINGS||${fallback},()=>globalThis.TUFAST_STRINGS||${fallback});\n${rewritten}`
   }
 
   return {

@@ -120,10 +120,26 @@ const scriptsUsingStrings = walkFiles(path.join(buildDir, 'contentScripts'))
   .sort()
 
 const directStringsAccess = /\bglobalThis\.TUFAST_STRINGS\b/
+const directStringsAccessGlobal = /\bglobalThis\.TUFAST_STRINGS\b/g
+const generatedStringsFallbackPrefix =
+  'globalThis.TUFAST_STRINGS_READY=Promise.resolve(globalThis.TUFAST_STRINGS_READY).then('
 
 for (const script of scriptsUsingStrings) {
   const source = fs.readFileSync(path.join(buildDir, script), 'utf8')
-  if (directStringsAccess.test(source)) {
+  const hasGeneratedFallback = source.startsWith(generatedStringsFallbackPrefix)
+  let generatedFallbackAccesses = 0
+  const sourceWithoutGeneratedFallback = hasGeneratedFallback
+    ? source.replace(directStringsAccessGlobal, (match) => {
+        generatedFallbackAccesses += 1
+        return generatedFallbackAccesses <= 2 ? '' : match
+      })
+    : source
+
+  if (!hasGeneratedFallback) {
+    throw new BuildCheckError(`${script} has no fallback for missing TUFAST_STRINGS_READY`)
+  }
+
+  if (directStringsAccess.test(sourceWithoutGeneratedFallback)) {
     throw new BuildCheckError(`${script} reads TUFAST_STRINGS directly instead of awaiting TUFAST_STRINGS_READY`)
   }
 
