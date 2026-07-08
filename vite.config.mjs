@@ -115,42 +115,57 @@ function injectManifestVersions() {
 }
 
 function keepContentScriptsClassic() {
-  const shouldRewrite = (fileName) =>
-    fileName.startsWith('contentScripts/') &&
-    !fileName.startsWith('contentScripts/other/hisqis/gradeChart') &&
-    !fileName.startsWith('contentScripts/other/hisqis/newTable')
+  const stringsFile = 'i18n/contentScriptStrings.js'
+  const shouldRewrite = (fileName, classicScripts) => classicScripts.has(fileName) || fileName === stringsFile
   const stringsFallbackPrefix = 'globalThis.TUFAST_STRINGS_READY=Promise.resolve(globalThis.TUFAST_STRINGS_READY).then('
+  // Manifest-loaded content scripts are classic scripts and share one isolated-world
+  // global scope per page. Keep top-level minified names from different files apart.
+  const iifePrefix = '(()=>{\n'
+  const iifeSuffix = '\n})();'
 
-  const rewrite = (code) => {
-    const helperMatch = code.match(/^import\{t as ([\w$]+)\}from"[^"]*vite\/pkg\/preload-helper\.js";/)
-    const withoutHelperImport = helperMatch ? code.slice(helperMatch[0].length) : code
-    const rewritten = withoutHelperImport.replace(
+  const unwrapIife = (code) => {
+    const trimmed = code.trimEnd()
+    return trimmed.startsWith(iifePrefix) && trimmed.endsWith(iifeSuffix)
+      ? trimmed.slice(iifePrefix.length, -iifeSuffix.length)
+      : code
+  }
+
+  const wrapIife = (code) => `${iifePrefix}${unwrapIife(code)}${iifeSuffix}`
+
+  const rewrite = (code, fileName) => {
+    // Vite may add this static helper import for dynamic imports. Static imports
+    // are a SyntaxError in classic content scripts, so keep the native import().
+    const withoutHelperImport = unwrapIife(code).replace(
+      /import\{t as [\w$]+\}from"[^"]*vite\/pkg\/preload-helper\.js";/g,
+      ''
+    )
+    const rewritten = unwrapIife(withoutHelperImport).replace(
       /\b[\w$]+\(\(\)=>import\((chrome\.runtime\.getURL\([^)]*\))\),\[\]\)/g,
       'import($1)'
     )
-    if (!rewritten.includes('TUFAST_STRINGS_READY') || rewritten.startsWith(stringsFallbackPrefix)) return rewritten
+    if (fileName === stringsFile) return wrapIife(rewritten)
+    if (!rewritten.includes('TUFAST_STRINGS_READY') || rewritten.startsWith(stringsFallbackPrefix)) return wrapIife(rewritten)
     const fallback = JSON.stringify(contentScriptStringsFallback())
-    return `globalThis.TUFAST_STRINGS_READY=Promise.resolve(globalThis.TUFAST_STRINGS_READY).then(s=>s||globalThis.TUFAST_STRINGS||${fallback},()=>globalThis.TUFAST_STRINGS||${fallback});\n${rewritten}`
+    return wrapIife(
+      `globalThis.TUFAST_STRINGS_READY=Promise.resolve(globalThis.TUFAST_STRINGS_READY).then(s=>s||globalThis.TUFAST_STRINGS||${fallback},()=>globalThis.TUFAST_STRINGS||${fallback});\n${rewritten}`
+    )
   }
 
   return {
     name: 'keep-content-scripts-classic',
-    renderChunk(code, chunk) {
-      if (!shouldRewrite(chunk.fileName)) return null
-      return { code: rewrite(code), map: null }
-    },
-    generateBundle(_options, bundle) {
-      for (const chunk of Object.values(bundle)) {
-        if (chunk.type === 'chunk' && shouldRewrite(chunk.fileName)) chunk.code = rewrite(chunk.code)
-      }
-    },
     writeBundle() {
-      for (const file of walkFiles(path.join(buildDir, 'contentScripts'))) {
-        const relativePath = toPosix(path.relative(buildDir, file))
-        if (!shouldRewrite(relativePath)) continue
+      // Run once on final files. Earlier Vite hooks can run before import analysis
+      // has added the helper import, and some contentScripts/ files are real modules.
+      const manifest = JSON.parse(fs.readFileSync(path.join(buildDir, 'manifest.json'), 'utf8'))
+      const classicScripts = new Set(manifest.content_scripts.flatMap((entry) => entry.js ?? []))
+      const files = [...classicScripts, stringsFile]
+
+      for (const relativePath of files) {
+        if (!shouldRewrite(relativePath, classicScripts)) continue
+        const file = path.join(buildDir, ...relativePath.split('/'))
 
         const code = fs.readFileSync(file, 'utf8')
-        const rewritten = rewrite(code)
+        const rewritten = rewrite(code, relativePath)
         if (rewritten !== code) fs.writeFileSync(file, rewritten)
       }
     }

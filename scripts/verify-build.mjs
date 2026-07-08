@@ -44,6 +44,34 @@ function collectMsgKeys(value, keys = new Set()) {
   return keys
 }
 
+const classicIifePrefix = '(()=>{\n'
+const classicIifeSuffix = '\n})();'
+
+function unwrapClassicScript(source) {
+  const trimmed = source.trimEnd()
+  return trimmed.startsWith(classicIifePrefix) && trimmed.endsWith(classicIifeSuffix)
+    ? trimmed.slice(classicIifePrefix.length, -classicIifeSuffix.length)
+    : source
+}
+
+function assertClassicScript(script) {
+  const source = fs.readFileSync(path.join(buildDir, script), 'utf8')
+
+  // Manifest content scripts run as classic scripts, not modules. Parsing them here
+  // catches leaked static imports before Chrome/Firefox hit a runtime SyntaxError.
+  try {
+    new vm.Script(source, { filename: script })
+  } catch (err) {
+    throw new BuildCheckError(`${script} is not a valid classic script: ${err.message}`)
+  }
+
+  // Classic content scripts on the same page share one global scope. The IIFE is
+  // intentional build output, preventing minified top-level names from colliding.
+  if (unwrapClassicScript(source) === source) {
+    throw new BuildCheckError(`${script} is not isolated in an IIFE`)
+  }
+}
+
 async function runContentScriptStrings(browserLocale, storedLocale) {
   const sandbox = {
     chrome: {
@@ -80,6 +108,9 @@ function collectContentSections() {
 const manifest = readJson(path.join(buildDir, 'manifest.json'))
 const defaultLocale = manifest.default_locale
 if (!defaultLocale) throw new BuildCheckError('manifest.json has no default_locale')
+
+const classicScripts = [...new Set(manifest.content_scripts.flatMap((entry) => entry.js ?? []))].sort()
+for (const script of classicScripts) assertClassicScript(script)
 
 const defaultMessages = readJson(path.join(buildDir, '_locales', defaultLocale, 'messages.json'))
 for (const key of collectMsgKeys(manifest)) {
@@ -126,14 +157,15 @@ const generatedStringsFallbackPrefix =
 
 for (const script of scriptsUsingStrings) {
   const source = fs.readFileSync(path.join(buildDir, script), 'utf8')
-  const hasGeneratedFallback = source.startsWith(generatedStringsFallbackPrefix)
+  const sourceBody = unwrapClassicScript(source)
+  const hasGeneratedFallback = sourceBody.startsWith(generatedStringsFallbackPrefix)
   let generatedFallbackAccesses = 0
   const sourceWithoutGeneratedFallback = hasGeneratedFallback
-    ? source.replace(directStringsAccessGlobal, (match) => {
+    ? sourceBody.replace(directStringsAccessGlobal, (match) => {
         generatedFallbackAccesses += 1
         return generatedFallbackAccesses <= 2 ? '' : match
       })
-    : source
+    : sourceBody
 
   if (!hasGeneratedFallback) {
     throw new BuildCheckError(`${script} has no fallback for missing TUFAST_STRINGS_READY`)
@@ -141,9 +173,9 @@ for (const script of scriptsUsingStrings) {
 
   if (
     !/^globalThis\.TUFAST_STRINGS_READY=Promise\.resolve\(globalThis\.TUFAST_STRINGS_READY\)\.then\([^=]+=>[^|]+\|\|globalThis\.TUFAST_STRINGS\|\|/.test(
-      source
+      sourceBody
     ) ||
-    !source.includes(',()=>globalThis.TUFAST_STRINGS||')
+    !sourceBody.includes(',()=>globalThis.TUFAST_STRINGS||')
   ) {
     throw new BuildCheckError(`${script} fallback does not handle falsy or rejected TUFAST_STRINGS_READY`)
   }
