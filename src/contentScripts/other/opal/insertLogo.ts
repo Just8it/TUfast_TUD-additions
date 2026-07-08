@@ -39,14 +39,12 @@ let opalInsertLogoStrings: typeof globalThis.TUFAST_STRINGS.opal
     const pageHeader = document.getElementsByClassName('page-header')[0]
     if (!pageHeader) return
 
-    // Get initial values
-    const { selectedRocketIcon, isEnabled, fwdEnabled, foundEasteregg } = await chrome.storage.local.get([
+    // This script owns the shared OPAL header container. Other OPAL buttons attach
+    // to it, so do not gate the injection on unrelated AutoLogin/search settings.
+    const { selectedRocketIcon, foundEasteregg } = await chrome.storage.local.get([
       'selectedRocketIcon',
-      'isEnabled',
-      'fwdEnabled',
       'foundEasteregg'
     ])
-    if (!isEnabled && !fwdEnabled) return
 
     // Looks weird but I like this more than having everything in a try/catch block
     const iconPath = (() => {
