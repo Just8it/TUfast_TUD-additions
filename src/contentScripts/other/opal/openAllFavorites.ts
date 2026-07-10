@@ -1,4 +1,7 @@
-;(function () {
+let opalOpenAllFavoritesStrings: typeof globalThis.TUFAST_STRINGS.opal
+;(async function () {
+  opalOpenAllFavoritesStrings = (await globalThis.TUFAST_STRINGS_READY).opal
+
   // Main injection logic
   async function injectOpenAllFavoritesButton() {
     // Check if button already exists
@@ -10,8 +13,8 @@
 
     const openAllFavoritesButton = document.createElement('span')
     openAllFavoritesButton.id = 'openAllFavoritesButton'
-    openAllFavoritesButton.textContent = 'Alle Favoriten öffnen'
-    openAllFavoritesButton.title = 'Alle Favoriten öffnen. Ein TUfast-Feature.'
+    openAllFavoritesButton.textContent = opalOpenAllFavoritesStrings.openAllFavorites
+    openAllFavoritesButton.title = opalOpenAllFavoritesStrings.openAllFavoritesTitle
     openAllFavoritesButton.style.opacity = '1'
     openAllFavoritesButton.style.cursor = 'pointer'
     openAllFavoritesButton.style.pointerEvents = 'auto'

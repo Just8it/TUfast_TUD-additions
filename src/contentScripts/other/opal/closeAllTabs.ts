@@ -1,3 +1,4 @@
+let opalCloseAllTabsStrings: typeof globalThis.TUFAST_STRINGS.opal
 const STORAGE_KEY = 'closeAllTabsOnLoad'
 
 // adds button
@@ -10,8 +11,8 @@ async function injectCloseAllButton() {
 
   const closeAllTabsButton = document.createElement('span')
   closeAllTabsButton.id = 'closeAllTabsButton'
-  closeAllTabsButton.title = 'Alle Tabs schließen. Ein TUfast-Feature.'
-  closeAllTabsButton.textContent = 'Alle Tabs schließen'
+  closeAllTabsButton.title = opalCloseAllTabsStrings.closeAllTabsTitle
+  closeAllTabsButton.textContent = opalCloseAllTabsStrings.closeAllTabs
 
   // if there are no tabs open, disable the button
   function updateButtonState() {
@@ -84,6 +85,8 @@ function closeAllTabsAfterReload() {
 }
 
 ;(async () => {
+  opalCloseAllTabsStrings = (await globalThis.TUFAST_STRINGS_READY).opal
+
   await injectCloseAllButton()
 
   const shouldCloseTabs = localStorage.getItem(STORAGE_KEY)

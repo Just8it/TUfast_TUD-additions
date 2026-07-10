@@ -26,6 +26,30 @@ function withoutExt(filePath) {
   return filePath.slice(0, -path.extname(filePath).length)
 }
 
+function readLocaleMessages() {
+  const localeDir = path.join(srcDir, 'i18n', 'locales')
+  return Object.fromEntries(
+    fs
+      .readdirSync(localeDir)
+      .filter((fileName) => fileName.endsWith('.json'))
+      .map((fileName) => [
+        path.basename(fileName, '.json'),
+        JSON.parse(fs.readFileSync(path.join(localeDir, fileName), 'utf8'))
+      ])
+  )
+}
+
+function readContentScriptMessages() {
+  return Object.fromEntries(
+    Object.entries(readLocaleMessages()).map(([locale, localeMessages]) => [locale, localeMessages.content])
+  )
+}
+
+function contentScriptStringsFallback() {
+  const messages = readContentScriptMessages()
+  return messages.en || Object.values(messages)[0] || {}
+}
+
 function buildInputs() {
   return Object.fromEntries(
     walkFiles(srcDir)
@@ -49,6 +73,7 @@ function copyStaticExtensionFiles() {
       const manifestNames = new Set(['manifest.json', 'manifest.chrome.json', 'manifest.firefox.json'])
       for (const file of walkFiles(srcDir)) {
         const relativePath = path.relative(srcDir, file)
+        if (/^i18n[\\/]locales[\\/][^\\/]+\.json$/.test(relativePath)) continue
         if (path.resolve(file) === legacyClassicScript) {
           const target = path.join(buildDir, relativePath)
           fs.mkdirSync(path.dirname(target), { recursive: true })
@@ -90,39 +115,93 @@ function injectManifestVersions() {
 }
 
 function keepContentScriptsClassic() {
-  const shouldRewrite = (fileName) =>
-    fileName.startsWith('contentScripts/') &&
-    !fileName.startsWith('contentScripts/other/hisqis/gradeChart') &&
-    !fileName.startsWith('contentScripts/other/hisqis/newTable')
+  const stringsFile = 'i18n/contentScriptStrings.js'
+  const shouldRewrite = (fileName, classicScripts) => classicScripts.has(fileName) || fileName === stringsFile
+  const stringsFallbackPrefix = 'globalThis.TUFAST_STRINGS_READY=Promise.resolve(globalThis.TUFAST_STRINGS_READY).then('
+  // Manifest-loaded content scripts are classic scripts and share one isolated-world
+  // global scope per page. Keep top-level minified names from different files apart.
+  const iifePrefix = '(()=>{\n'
+  const iifeSuffix = '\n})();'
 
-  const rewrite = (code) => {
-    const helperMatch = code.match(/^import\{t as ([\w$]+)\}from"[^"]*vite\/pkg\/preload-helper\.js";/)
-    const withoutHelperImport = helperMatch ? code.slice(helperMatch[0].length) : code
-    return withoutHelperImport.replace(
+  const unwrapIife = (code) => {
+    const trimmed = code.trimEnd()
+    return trimmed.startsWith(iifePrefix) && trimmed.endsWith(iifeSuffix)
+      ? trimmed.slice(iifePrefix.length, -iifeSuffix.length)
+      : code
+  }
+
+  const wrapIife = (code) => `${iifePrefix}${unwrapIife(code)}${iifeSuffix}`
+
+  const rewrite = (code, fileName) => {
+    // Vite may add this static helper import for dynamic imports. Static imports
+    // are a SyntaxError in classic content scripts, so keep the native import().
+    const withoutHelperImport = unwrapIife(code).replace(
+      /import\{t as [\w$]+\}from"[^"]*vite\/pkg\/preload-helper\.js";/g,
+      ''
+    )
+    const rewritten = unwrapIife(withoutHelperImport).replace(
       /\b[\w$]+\(\(\)=>import\((chrome\.runtime\.getURL\([^)]*\))\),\[\]\)/g,
       'import($1)'
+    )
+    if (fileName === stringsFile) return wrapIife(rewritten)
+    if (!rewritten.includes('TUFAST_STRINGS_READY') || rewritten.startsWith(stringsFallbackPrefix)) return wrapIife(rewritten)
+    const fallback = JSON.stringify(contentScriptStringsFallback())
+    return wrapIife(
+      `globalThis.TUFAST_STRINGS_READY=Promise.resolve(globalThis.TUFAST_STRINGS_READY).then(s=>s||globalThis.TUFAST_STRINGS||${fallback},()=>globalThis.TUFAST_STRINGS||${fallback});\n${rewritten}`
     )
   }
 
   return {
     name: 'keep-content-scripts-classic',
-    renderChunk(code, chunk) {
-      if (!shouldRewrite(chunk.fileName)) return null
-      return { code: rewrite(code), map: null }
-    },
-    generateBundle(_options, bundle) {
-      for (const chunk of Object.values(bundle)) {
-        if (chunk.type === 'chunk' && shouldRewrite(chunk.fileName)) chunk.code = rewrite(chunk.code)
-      }
-    },
     writeBundle() {
-      for (const file of walkFiles(path.join(buildDir, 'contentScripts'))) {
-        const relativePath = toPosix(path.relative(buildDir, file))
-        if (!shouldRewrite(relativePath)) continue
+      // Run once on final files. Earlier Vite hooks can run before import analysis
+      // has added the helper import, and some contentScripts/ files are real modules.
+      const manifest = JSON.parse(fs.readFileSync(path.join(buildDir, 'manifest.json'), 'utf8'))
+      const classicScripts = new Set(manifest.content_scripts.flatMap((entry) => entry.js ?? []))
+      const files = [...classicScripts, stringsFile]
+
+      for (const relativePath of files) {
+        if (!shouldRewrite(relativePath, classicScripts)) continue
+        const file = path.join(buildDir, ...relativePath.split('/'))
 
         const code = fs.readFileSync(file, 'utf8')
-        const rewritten = rewrite(code)
+        const rewritten = rewrite(code, relativePath)
         if (rewritten !== code) fs.writeFileSync(file, rewritten)
+      }
+    }
+  }
+}
+
+function inlineContentScriptStrings() {
+  return {
+    name: 'inline-content-script-strings',
+    generateBundle(_options, bundle) {
+      const stringsChunk = bundle['i18n/contentScriptStrings.js']
+      if (!stringsChunk || stringsChunk.type !== 'chunk') return
+
+      const marker = /\b__TUFAST_CONTENT_LOCALES__\b/
+      if (!marker.test(stringsChunk.code)) throw new Error(`__TUFAST_CONTENT_LOCALES__ not found in ${stringsChunk.fileName}`)
+      stringsChunk.code = stringsChunk.code.replace(marker, JSON.stringify(readContentScriptMessages()))
+    }
+  }
+}
+
+function writeManifestLocales() {
+  return {
+    name: 'write-manifest-locales',
+    generateBundle(_options, bundle) {
+      for (const [locale, localeMessages] of Object.entries(readLocaleMessages())) {
+        const manifest = localeMessages.manifest
+        if (!manifest) continue
+        const browserMessages = Object.fromEntries(
+          Object.entries(manifest).map(([key, message]) => [key, { message }])
+        )
+
+        this.emitFile({
+          type: 'asset',
+          fileName: `_locales/${locale}/messages.json`,
+          source: JSON.stringify(browserMessages, null, 2) + '\n'
+        })
       }
     }
   }
@@ -131,7 +210,14 @@ function keepContentScriptsClassic() {
 export default defineConfig({
   root: srcDir,
   publicDir: false,
-  plugins: [vue(), copyStaticExtensionFiles(), injectManifestVersions(), keepContentScriptsClassic()],
+  plugins: [
+    vue(),
+    copyStaticExtensionFiles(),
+    injectManifestVersions(),
+    keepContentScriptsClassic(),
+    inlineContentScriptStrings(),
+    writeManifestLocales()
+  ],
   build: {
     outDir: buildDir,
     emptyOutDir: true,

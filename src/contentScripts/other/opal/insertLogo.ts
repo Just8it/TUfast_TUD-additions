@@ -1,6 +1,9 @@
 // OPAL loads several content scripts in one shared isolated-world scope; other bundles
 // minify globals like `var e` and would clobber top-level helpers here (easter egg).
-;(() => {
+let opalInsertLogoStrings: typeof globalThis.TUFAST_STRINGS.opal
+;(async () => {
+  opalInsertLogoStrings = (await globalThis.TUFAST_STRINGS_READY).opal
+
   // Step through the color wheel
   function colorStep(noOfSteps: number = 10) {
     // Get color variable
@@ -36,14 +39,14 @@
     const pageHeader = document.getElementsByClassName('page-header')[0]
     if (!pageHeader) return
 
-    // Get initial values
-    const { selectedRocketIcon, isEnabled, fwdEnabled, foundEasteregg } = await chrome.storage.local.get([
+    // This script owns the shared OPAL header container (.tufast-opal-header); the other
+    // header buttons attach to it, so injection is deliberately unconditional and the
+    // logo always shows — not gated on AutoLogin/search settings. Decision:
+    // https://github.com/TUfast-TUD/TUfast_TUD/pull/194#issuecomment-4938125157
+    const { selectedRocketIcon, foundEasteregg } = await chrome.storage.local.get([
       'selectedRocketIcon',
-      'isEnabled',
-      'fwdEnabled',
       'foundEasteregg'
     ])
-    if (!isEnabled && !fwdEnabled) return
 
     // Looks weird but I like this more than having everything in a try/catch block
     const iconPath = (() => {
@@ -78,7 +81,7 @@
     const logo = document.createElement('img')
     logo.src = iconURL
     logo.id = 'TUfastIcon'
-    logo.title = 'Powered by TUfast. Enjoy :)'
+    logo.title = opalInsertLogoStrings.logoTitle
     // Create container div and insert logo
     const div = document.createElement('div')
     div.className = 'tufast-opal-header'

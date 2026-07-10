@@ -34,6 +34,38 @@ After developing:
 - **Build tool**: [Vite](https://vite.dev/). Run `npm run dev` to compile sass and ts files.
 - **CSS-Preprocessor**: We are using [SASS](https://sass-lang.com/).
 - **Code style and linting**: We are using ESlint and prettier. Run `npm run test` to check your code style and linting before pushing code. Wrong formatting will result in a failing CI. You should configure your editor to automatically format on save with prettier for which VSCode provides [this extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode).
+- **Localization**: TUfast uses the custom `src/i18n` helper with JSON locale files in `src/i18n/locales/*.json`, so the same translations work in Vue pages, popup, background, and content scripts.
+
+## Strings and locales
+
+### Overview
+
+User-facing strings are stored in `src/i18n/locales/*.json`. Do not write user-facing copy inline in Vue components, content scripts, popup code, background code, or shared modules.
+
+German (`de.json`) is the reference for the locale structure. Unsupported runtime locales fall back to English.
+
+### Adding or changing text
+
+1. Add the string to `src/i18n/locales/de.json`.
+2. Add the same key to every other locale.
+3. Keep the key structure identical across all locale files.
+4. Use `t('path.to.string')` in Vue pages, popup code, background code, and shared modules.
+5. Put manifest-loaded content script strings in the locale’s `content` block. They are exposed through `globalThis.TUFAST_STRINGS`.
+6. Run `npm run test`.
+
+### Adding a language
+
+1. Copy `src/i18n/locales/de.json` to `src/i18n/locales/<language>.json`.
+2. Translate values only.
+3. Keep all keys unchanged.
+4. Run `npm run test`.
+
+### Locale behavior
+
+The language setting defaults to `auto`: use the browser UI language when supported, otherwise fall back to English. Manual settings override `auto`.
+
+The build generates browser `_locales/<lang>/messages.json` from each locale’s `manifest` block. Locale checks are part of `npm run test`.
+
 
 ## Known peculiarities and bugs
 - `Unchecked runtime.lastError: The message port closed before a response was received.` Promisifying chrome.runtime.sendMessage({...}) doesnt work, because when you define a callback (Promise.resolve) sendMessage will wait until sendResponse is called in the message handler. It just stalls execution and then dies if it's never called. **Solutions:** 1) Unpromisify sendMessage. 2) Always return a value (return true is fine).
