@@ -1,17 +1,17 @@
 # Contributing
 
 ## TL;DR
-- Before implementing a feature communicate with us via GitHub - code maintainers often have good suggestions for the implementation.
+- Before implementing a feature, we recommend communicating with us via GitHub - code maintainers often have good suggestions for the implementation.
 - Commit any changes (new features or hot-fixes) directly against the main branch.
+- The use of coding agents is encouraged, but see restrictions below.
 
 ## Design Philosophy
 
-TUfast should work out of the box — a nice-to-use and beautiful tool. It's meant to make student life easier rather than adding complexity on top, which includes non-technical users. Thus, TUfast requires minimal setup: prefer sensible defaults over options. User-facing interactions are lightweight and easy to understand. New features ship mostly **enabled by default** — meaning we only build features that matter, and test them well. This keeps TUfast simple: sensible default settings, minimal setup required. For details see [discussion](https://github.com/TUfast-TUD/TUfast_TUD/discussions/180#discussioncomment-17564566).
+TUfast works out of the box — a nice-to-use and beautiful tool. It's meant to make student life easier rather than adding complexity on top, which includes non-technical users. Thus, TUfast requires minimal setup: prefer sensible defaults over options. User-facing interactions are lightweight and easy to understand. New features ship mostly **enabled by default** — meaning we only build features that matter, and test them well. This keeps TUfast simple: sensible default settings, minimal setup required. For details, see [discussion](https://github.com/TUfast-TUD/TUfast_TUD/discussions/180#discussioncomment-17564566).
 
 ## Coding agents
-- **We encourage the use of coding agents**
-- All agents must read AGENTS.md for context
-- Any **text used to directly communicate with other humans** (contributors, maintainers, developers) **must be written by humans** mostly. This applies to Issues, Discussions, PRs, and files like README.md and CONTRIBUTING.md. If partially or fully written by AI, it must be flagged as such by starting the text with `🤖 AI-generated` (or `🤖 partially AI-generated` if mixed). PR Summaries etc can be AI-generated, but explicitly **flagged as such**. This is to keep communication fair, and not swamp other contributors with AI-written text.
+- All agents must read AGENTS.md (should usually happend automatically)
+- Any **text used to directly communicate with other humans** (contributors, maintainers, other developers) **must be written by humans** mostly. This applies to Issues, Discussions, PRs, and files like README.md and CONTRIBUTING.md. If partially or fully written by AI, it must be flagged as such by starting the text with `🤖 AI-generated` (or `🤖 partially AI-generated`). PR Summaries etc can be AI-generated, but explicitly **flagged as such**. This is to keep communication fair - in those documents we are looking for genuine human insights.
 
 
 ## Getting started with browser extensions
@@ -48,13 +48,11 @@ After developing:
 
 ## Strings and locales
 
-### Overview
+User-facing strings are stored in `src/i18n/locales/*.json`. Do not write user-facing copy inline in Vue components, content scripts, popup code, background code, or shared modules. The language setting defaults to `auto` (use the browser UI language). If not supported, it falls back to English.  Manual language choice overrides `auto`. German (`de.json`) is the reference for the locale structure (for legacy reasons). 
 
-User-facing strings are stored in `src/i18n/locales/*.json`. Do not write user-facing copy inline in Vue components, content scripts, popup code, background code, or shared modules.
+The build generates browser `_locales/<lang>/messages.json` from each locale’s `manifest` block. Locale checks are part of `npm run test`.
 
-German (`de.json`) is the reference for the locale structure. Unsupported runtime locales fall back to English.
-
-### Adding or changing text
+### Adding or changing user-facing text
 
 1. Add the string to `src/i18n/locales/de.json`.
 2. Add the same key to every other locale.
@@ -70,11 +68,6 @@ German (`de.json`) is the reference for the locale structure. Unsupported runtim
 3. Keep all keys unchanged.
 4. Run `npm run test`.
 
-### Locale behavior
-
-The language setting defaults to `auto`: use the browser UI language when supported, otherwise fall back to English. Manual settings override `auto`.
-
-The build generates browser `_locales/<lang>/messages.json` from each locale’s `manifest` block. Locale checks are part of `npm run test`.
 
 
 ## Known peculiarities and bugs
