@@ -20,16 +20,24 @@ Routing rule: needed on every task → `AGENTS.md`. Durable area-specific knowle
 
 ## Design decisions
 
+### Human-made decisions
+
 - Custom `src/i18n` runtime instead of `vue-i18n`: the dependency was tried during the i18n work (#191–#194) and removed because the custom helper already did everything — one clear mechanism preferred; rationale in `CONTRIBUTING.md`.
-- SmartSearch V2 is enabled by default if merged. Keep the focused OPAL palette and adapter-only popup on the shared `opal_smart_search_query` provider; indexing is a button action, not another persistent toggle.
-- SmartSearch consumes the existing `favoriten`/`meine_kurse` storage from `parseCourses.ts`. Improve reuses stored favorites, or publishes a cancellable `starting` job before navigating to favorites and waiting for the list to settle; pressing Improve again during startup or crawling cancels it.
+- SmartSearch V2 is enabled by default if merged. Keep the focused OPAL palette and adapter-only popup on the shared `opal_smart_search_query` provider and IndexedDB graph; improvement is a button action, not another persistent toggle.
+- SmartSearch consumes the existing `favoriten`/`meine_kurse` storage from `parseCourses.ts`. Improve reuses stored favorites and detects them only when missing; pressing Improve again during startup or crawling cancels it, and a cancelled job must not resume.
+- Explicit numbers are strong title intent. Plain topic queries favor folders, while `/f` and extension tokens favor files.
+- Preserve the existing rendered-iframe-first crawler with fetch parsing as fallback. Expand `.pager-showall` before reading numbered tables, treat unconfirmed expansion as incomplete, keep the iframe sandbox free of top-navigation, and warn that the existing OPAL tab may reload while improvement runs.
+- Active improvement must support courses with 25+ weekly sections and courses observed to take around four minutes.
+
+### Agent-made decisions
+
+- When favorites are missing, publish a cancellable `starting` job before navigating to favorites and wait for the parsed list to settle before crawling.
 - Active progress is the resumable job latch. `startedAt` is its generation id and `ownerTabId` its single-tab lease; every crawl, write, prune, and course commit must match both. Background-owned monotonic counters and idempotent commits prevent retries from moving progress backward or double-counting.
-- Explicit numbers are strong title intent (`Serie_9` and `Serie9` tokenize alike). Plain topic queries favor folders, while `/f` and extension tokens favor files and may inherit a strongly matching parent folder title.
-- Rendered iframe indexing is primary and fetch parsing is fallback. Expand `.pager-showall` before reading a numbered table; missing or unconfirmed expansion makes the course incomplete. Keep the iframe sandbox free of top-navigation, and expect the existing OPAL tab to be inconvenient while its job runs.
-- CourseNode caps must cover courses with 25+ weekly sections; the five-minute per-course budget is the real safety brake. Markup-only files are stored once and never queued as folders.
+- Tokenization makes `Serie_9` and `Serie9` equivalent, and file results may inherit a strongly matching parent-folder title.
+- Use a five-minute per-course safety budget. Store markup-only files once and never queue them as folders.
 - Centralize navigation/control filtering and course scoping in `urlPolicy.ts`. Explicit file signals must win over `CourseNode`, because OPAL downloads often contain both; cross-course results need a separate type rather than entering the course graph.
 - Improve must revisit existing sections so extractor fixes can repair old data. Only a complete rendered crawl may prune stale nodes or count as successful; partial and fallback crawls may retain useful nodes but remain incomplete.
-- Crawling and passive discovery record zero visits. Interrupted jobs resume under the same generation and owner with monotonic counters, while explicit cancellation returns to idle and must never resume.
+- Crawling and passive discovery record zero visits. Interrupted jobs resume under the same generation and owner with monotonic counters.
 
 
 ## ToDo — improvement ideas
@@ -37,5 +45,4 @@ Routing rule: needed on every task → `AGENTS.md`. Durable area-specific knowle
 Agent-suggested improvements to the project and codebase, recorded as context for later. Not a task tracker: when an idea becomes concrete and actionable, open a GitHub issue and link it here, or remove the entry.
 
 - Persistent retry counter as a failsafe for auto-login, capping attempts even when string detection breaks (maintainer-discussed in #156/#160; prototype in A-K-O-R-A's `feature.login-timouts` branch). Complements, not replaces, the string detection.
-- Keep the temporary SmartSearch OPAL-console dump bridge during beta diagnosis at the user's discretion. Remove `opal_smart_search_dump_nodes` and `tufast-smart-search-debug-dump` before the merge-ready release build.
-
+- Human-requested beta exception: keep the temporary SmartSearch OPAL-console dump bridge during diagnosis. Remove `opal_smart_search_dump_nodes` and `tufast-smart-search-debug-dump` before the merge-ready release build.
