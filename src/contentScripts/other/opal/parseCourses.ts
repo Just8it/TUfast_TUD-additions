@@ -1,6 +1,7 @@
 import type { NotificationNamespace } from '../notification'
 
 let opalParseCoursesStrings: typeof globalThis.TUFAST_STRINGS.opal
+const OPAL_SMART_SEARCH_FAVORITES_DETECTED_KEY = 'opalSmartSearchFavoritesDetectedAt'
 
 interface Course {
   name: string
@@ -113,13 +114,17 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
     const previewContainer = tablePanel.getElementsByClassName('content-preview-container')[0] as
       | HTMLDivElement
       | undefined
+    const tableBody = tablePanel.getElementsByTagName('tbody')[0]
 
-    const { courses, favorites } = previewContainer
-      ? parseList(previewContainer)
-      : parseTable(tablePanel.getElementsByTagName('tbody')[0])
+    const { courses, favorites } = previewContainer ? parseList(previewContainer) : parseTable(tableBody)
+
+    const renderedEmptyFavorites =
+      currentPage === 'favoriten' &&
+      courses.length === 0 &&
+      !!tablePanel.querySelector('.empty-state, [class*="empty-state"], [data-empty-state]')
 
     // If the user has no courses - nothing to do here anymore (favorites can only be a subset of courses, so no check needed)
-    if (courses.length === 0) return
+    if (courses.length === 0 && !renderedEmptyFavorites) return
 
     // Sort them by name
     courses.sort((a, b) => a.name.localeCompare(b.name))
@@ -161,9 +166,10 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
     const favouritesChanged = !arraysAreSame(currentFavourites || [], favorites)
 
     // eslint-disable-next-line camelcase
-    const updateObj: { meine_kurse?: string; favoriten?: string } = {}
+    const updateObj: Record<string, string | number> = {}
     if (coursesChanged) updateObj.meine_kurse = JSON.stringify(courses)
-    if (favouritesChanged) updateObj.favoriten = JSON.stringify(favorites)
+    if (favouritesChanged || renderedEmptyFavorites) updateObj.favoriten = JSON.stringify(favorites)
+    if (currentPage === 'favoriten') updateObj[OPAL_SMART_SEARCH_FAVORITES_DETECTED_KEY] = Date.now()
 
     if (Object.keys(updateObj).length > 0) {
       await chrome.storage.local.set(updateObj)
@@ -180,8 +186,14 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
   const content = document.getElementsByClassName('content-container')[0]
   if (!content) return
 
-  new MutationObserver(mainFunction).observe(content, { subtree: true, childList: true })
+  let parseTimeout = 0
+  const scheduleMainFunction = () => {
+    window.clearTimeout(parseTimeout)
+    parseTimeout = window.setTimeout(mainFunction, 800)
+  }
 
-  // Run the function a first time
-  mainFunction()
+  new MutationObserver(scheduleMainFunction).observe(content, { subtree: true, childList: true })
+
+  // Let OPAL finish replacing its initially empty table before acknowledging favorites.
+  scheduleMainFunction()
 })()

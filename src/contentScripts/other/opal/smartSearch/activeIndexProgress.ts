@@ -1,0 +1,17 @@
+import { OPAL_SMART_SEARCH_ACTIVE_PROGRESS_EVENT } from '../../../../modules/opalSmartSearch/settings'
+import type { OpalActiveIndexProgress } from '../../../../modules/opalSmartSearch/types'
+
+export type ActiveIndexProgressUpdate = Partial<
+  Omit<OpalActiveIndexProgress, 'startedAt' | 'updatedAt' | 'ownerTabId'>
+> & {
+  startedAt?: number
+}
+
+export async function publishActiveIndexProgress(update: ActiveIndexProgressUpdate): Promise<OpalActiveIndexProgress> {
+  const progress = (await chrome.runtime.sendMessage({
+    cmd: 'opal_smart_search_publish_progress',
+    update
+  })) as OpalActiveIndexProgress
+  window.dispatchEvent(new CustomEvent(OPAL_SMART_SEARCH_ACTIVE_PROGRESS_EVENT, { detail: progress }))
+  return progress
+}
