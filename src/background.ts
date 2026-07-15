@@ -15,18 +15,12 @@ import {
 } from './modules/opalSmartSearch/indexDb'
 import { searchOpalNodes } from './modules/opalSmartSearch/search'
 import {
-  DEFAULT_SMART_SEARCH_SETTINGS,
-  OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY,
-  OPAL_SMART_SEARCH_ACTIVE_RUNS_KEY,
-  OPAL_SMART_SEARCH_FAVORITES_DETECTED_KEY,
-  OPAL_SMART_SEARCH_HIGHLIGHT_KEY,
-  OPAL_SMART_SEARCH_JOB_STALE_MS,
-  OPAL_SMART_SEARCH_OPEN_AFTER_OPAL_LOAD_KEY,
-  OPAL_SMART_SEARCH_SETTINGS_KEY,
-  OPAL_SMART_SEARCH_START_STALE_MS,
-  OPAL_SMART_SEARCH_SUCCESSFUL_RUNS_KEY,
+  SmartSearchKey,
+  defaultSmartSearchSettings,
+  jobStaleMs,
   loadSmartSearchSettings,
-  saveSmartSearchSettings
+  saveSmartSearchSettings,
+  startStaleMs
 } from './modules/opalSmartSearch/settings'
 import type { OpalActiveIndexProgress, OpalSearchNode } from './modules/opalSmartSearch/types'
 import {
@@ -71,7 +65,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         hisqisPimpedTable: true,
         bannersShown: ['mv3UpdateNotice'],
         improveSelma: true,
-        [OPAL_SMART_SEARCH_SETTINGS_KEY]: DEFAULT_SMART_SEARCH_SETTINGS
+        [SmartSearchKey.settings]: defaultSmartSearchSettings
       })
       await openSettingsPage('first_visit')
       break
@@ -88,7 +82,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         'studiengang',
         'hisqisPimpedTable',
         'improveSelma',
-        OPAL_SMART_SEARCH_SETTINGS_KEY,
+        SmartSearchKey.settings,
         'savedClickCounter',
         'saved_click_counter', // legacy
         'Rocket', // legacy
@@ -111,8 +105,8 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       if (typeof currentSettings.fwdEnabled === 'undefined') updateObj.fwdEnabled = true
       if (typeof currentSettings.hisqisPimpedTable === 'undefined') updateObj.hisqisPimpedTable = true
       if (typeof currentSettings.improveSelma === 'undefined') updateObj.improveSelma = true
-      if (typeof currentSettings[OPAL_SMART_SEARCH_SETTINGS_KEY] === 'undefined')
-        updateObj[OPAL_SMART_SEARCH_SETTINGS_KEY] = DEFAULT_SMART_SEARCH_SETTINGS
+      if (typeof currentSettings[SmartSearchKey.settings] === 'undefined')
+        updateObj[SmartSearchKey.settings] = defaultSmartSearchSettings
       if (typeof currentSettings.theme === 'undefined') updateObj.theme = 'system'
       if (typeof currentSettings.locale === 'undefined') updateObj.locale = 'auto'
       if (typeof currentSettings.studiengang === 'undefined') updateObj.studiengang = 'general'
@@ -779,10 +773,10 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         await cancelOpalSmartSearchPreload()
         await clearOpalSearchIndex()
         await chrome.storage.local.remove([
-          OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY,
-          OPAL_SMART_SEARCH_ACTIVE_RUNS_KEY,
-          OPAL_SMART_SEARCH_HIGHLIGHT_KEY,
-          OPAL_SMART_SEARCH_SUCCESSFUL_RUNS_KEY
+          SmartSearchKey.activeProgress,
+          SmartSearchKey.activeRuns,
+          SmartSearchKey.highlight,
+          SmartSearchKey.successfulRuns
         ])
         return true
       })
@@ -871,7 +865,7 @@ async function openOpalSmartSearch(currentTab?: chrome.tabs.Tab, rawQuery?: stri
   }
 
   await chrome.storage.local.set({
-    [OPAL_SMART_SEARCH_OPEN_AFTER_OPAL_LOAD_KEY]: {
+    [SmartSearchKey.openAfterOpalLoad]: {
       expiresAt: Date.now() + 15000,
       ...(typeof rawQuery === 'string' ? { rawQuery } : {})
     }
@@ -903,7 +897,7 @@ async function openOpalSmartSearchResult(nodeId: string): Promise<boolean> {
     const parentUrl = parent ? normalizeAllowedOpalUrl(parent.url) : null
     if (parentUrl && targetUrl) {
       await chrome.storage.local.set({
-        [OPAL_SMART_SEARCH_HIGHLIGHT_KEY]: { title: node.title, url: targetUrl }
+        [SmartSearchKey.highlight]: { title: node.title, url: targetUrl }
       })
       targetUrl = parentUrl
     }
@@ -997,14 +991,14 @@ async function prepareOpalSmartSearchPreload(
   if (!tab.id) return undefined
 
   const writeGeneration = opalSmartSearchWriteGeneration
-  const existing = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const previous = readOpalSmartSearchProgress(existing[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const existing = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const previous = readOpalSmartSearchProgress(existing[SmartSearchKey.activeProgress])
   const startedAt = Math.max(Date.now(), previous.startedAt + 1)
   await saveSmartSearchSettings({ enabled: true })
   // Manual Improve always retries every favorite; clear this before publishing the job so auto-recovery sees it.
-  await chrome.storage.local.remove(OPAL_SMART_SEARCH_ACTIVE_RUNS_KEY)
+  await chrome.storage.local.remove(SmartSearchKey.activeRuns)
   await chrome.storage.local.set({
-    [OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]: {
+    [SmartSearchKey.activeProgress]: {
       status: 'starting',
       startedAt,
       updatedAt: Date.now(),
@@ -1031,13 +1025,13 @@ async function findOpalSmartSearchTab(preferredTab?: chrome.tabs.Tab): Promise<c
 
 function resumeOpalSmartSearchAfterOwnerLoss(ownerTabId: number): void {
   queueOpalSmartSearchControl(async () => {
-    const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-    const progress = readOpalSmartSearchProgress(data[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+    const data = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+    const progress = readOpalSmartSearchProgress(data[SmartSearchKey.activeProgress])
     if (progress.ownerTabId !== ownerTabId) return undefined
     if (progress.status === 'starting') {
       opalSmartSearchWriteGeneration += 1
       await chrome.storage.local.set({
-        [OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]: {
+        [SmartSearchKey.activeProgress]: {
           ...progress,
           status: 'failed',
           updatedAt: Date.now(),
@@ -1072,16 +1066,16 @@ async function handoffOpalSmartSearch(handoff: {
 }): Promise<void> {
   for (const tabId of handoff.tabIds) {
     for (let attempt = 0; attempt < 6; attempt += 1) {
-      const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-      const progress = readOpalSmartSearchProgress(data[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+      const data = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+      const progress = readOpalSmartSearchProgress(data[SmartSearchKey.activeProgress])
       if (progress.status !== 'running' || progress.startedAt !== handoff.startedAt) return
       if (progress.ownerTabId !== handoff.ownerTabId && progress.ownerTabId !== tabId) return
 
       await sendOpalSmartSearchTabMessage(tabId, { cmd: 'start_opal_smart_search_preload' })
       await delay(500)
 
-      const latest = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-      const latestProgress = readOpalSmartSearchProgress(latest[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+      const latest = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+      const latestProgress = readOpalSmartSearchProgress(latest[SmartSearchKey.activeProgress])
       if (latestProgress.status !== 'running' || latestProgress.startedAt !== handoff.startedAt) return
       if (latestProgress.ownerTabId === tabId) return
     }
@@ -1090,7 +1084,7 @@ async function handoffOpalSmartSearch(handoff: {
 
 async function refreshStoredOpalFavorites(start: OpalSmartSearchStart): Promise<boolean> {
   if (!(await isOpalSmartSearchStartCurrent(start, 'starting'))) return false
-  const stored = await chrome.storage.local.get(['favoriten', OPAL_SMART_SEARCH_FAVORITES_DETECTED_KEY])
+  const stored = await chrome.storage.local.get(['favoriten', SmartSearchKey.favoritesDetectedAt])
   if (typeof stored.favoriten === 'string') return true
 
   const favoritesUrl = 'https://bildungsportal.sachsen.de/opal/auth/resource/favorites'
@@ -1102,8 +1096,8 @@ async function refreshStoredOpalFavorites(start: OpalSmartSearchStart): Promise<
   for (let attempt = 0; attempt < 60; attempt += 1) {
     await delay(250)
     if (!(await isOpalSmartSearchStartCurrent(start, 'starting'))) return false
-    const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_FAVORITES_DETECTED_KEY])
-    if (Number(data[OPAL_SMART_SEARCH_FAVORITES_DETECTED_KEY]) >= requestedAt) return true
+    const data = await chrome.storage.local.get([SmartSearchKey.favoritesDetectedAt])
+    if (Number(data[SmartSearchKey.favoritesDetectedAt]) >= requestedAt) return true
   }
 
   return false
@@ -1111,10 +1105,10 @@ async function refreshStoredOpalFavorites(start: OpalSmartSearchStart): Promise<
 
 async function activateOpalSmartSearchPreload(start: OpalSmartSearchStart): Promise<boolean> {
   if (!(await isOpalSmartSearchStartCurrent(start, 'starting'))) return false
-  const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const progress = readOpalSmartSearchProgress(data[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const data = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const progress = readOpalSmartSearchProgress(data[SmartSearchKey.activeProgress])
   await chrome.storage.local.set({
-    [OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]: {
+    [SmartSearchKey.activeProgress]: {
       ...progress,
       status: 'running',
       updatedAt: Date.now()
@@ -1128,8 +1122,8 @@ async function isOpalSmartSearchStartCurrent(
   status: 'starting' | 'running'
 ): Promise<boolean> {
   if (start.writeGeneration !== opalSmartSearchWriteGeneration) return false
-  const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const progress = readOpalSmartSearchProgress(data[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const data = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const progress = readOpalSmartSearchProgress(data[SmartSearchKey.activeProgress])
   return progress.status === status && progress.startedAt === start.startedAt && progress.ownerTabId === start.tabId
 }
 
@@ -1156,8 +1150,8 @@ async function sendStartOpalSmartSearchPreload(
 }
 
 async function failOpalSmartSearchPreload(jobStartedAt: number, writeGeneration: number): Promise<void> {
-  const result = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const progress = readOpalSmartSearchProgress(result[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const result = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const progress = readOpalSmartSearchProgress(result[SmartSearchKey.activeProgress])
   if (
     writeGeneration !== opalSmartSearchWriteGeneration ||
     (progress.status !== 'starting' && progress.status !== 'running') ||
@@ -1165,7 +1159,7 @@ async function failOpalSmartSearchPreload(jobStartedAt: number, writeGeneration:
   )
     return
   await chrome.storage.local.set({
-    [OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]: {
+    [SmartSearchKey.activeProgress]: {
       ...progress,
       status: 'failed',
       updatedAt: Date.now()
@@ -1175,13 +1169,13 @@ async function failOpalSmartSearchPreload(jobStartedAt: number, writeGeneration:
 
 async function cancelOpalSmartSearchPreload(): Promise<void> {
   const writeGeneration = ++opalSmartSearchWriteGeneration
-  const result = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const result = await chrome.storage.local.get([SmartSearchKey.activeProgress])
   if (writeGeneration !== opalSmartSearchWriteGeneration) return
-  const progress = readOpalSmartSearchProgress(result[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const progress = readOpalSmartSearchProgress(result[SmartSearchKey.activeProgress])
   if (progress.status !== 'starting' && progress.status !== 'running') return
 
   await chrome.storage.local.set({
-    [OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]: {
+    [SmartSearchKey.activeProgress]: {
       ...progress,
       status: 'idle',
       updatedAt: Date.now(),
@@ -1201,12 +1195,12 @@ function queueOpalSmartSearchControl<T>(operation: () => Promise<T>): Promise<T>
 }
 
 async function readCurrentOpalSmartSearchProgress(): Promise<OpalActiveIndexProgress> {
-  const result = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const progress = readOpalSmartSearchProgress(result[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const result = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const progress = readOpalSmartSearchProgress(result[SmartSearchKey.activeProgress])
   if (!(await expireOpalSmartSearchProgress(progress))) return progress
 
-  const expired = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  return readOpalSmartSearchProgress(expired[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const expired = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  return readOpalSmartSearchProgress(expired[SmartSearchKey.activeProgress])
 }
 
 async function claimOpalSmartSearchJob(
@@ -1214,8 +1208,8 @@ async function claimOpalSmartSearchJob(
   jobStartedAt: number,
   writeGeneration: number
 ): Promise<boolean> {
-  const result = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const progress = readOpalSmartSearchProgress(result[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const result = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const progress = readOpalSmartSearchProgress(result[SmartSearchKey.activeProgress])
   if (
     writeGeneration !== opalSmartSearchWriteGeneration ||
     progress.status !== 'running' ||
@@ -1227,7 +1221,7 @@ async function claimOpalSmartSearchJob(
   if (progress.ownerTabId && (await isLiveOpalTab(progress.ownerTabId))) return false
 
   await chrome.storage.local.set({
-    [OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]: {
+    [SmartSearchKey.activeProgress]: {
       ...progress,
       ownerTabId,
       updatedAt: Date.now()
@@ -1247,17 +1241,12 @@ async function isLiveOpalTab(tabId: number): Promise<boolean> {
 
 async function expireOpalSmartSearchProgress(progress: OpalActiveIndexProgress): Promise<boolean> {
   const lastActivityAt = Math.max(progress.startedAt, progress.updatedAt)
-  const staleAfter =
-    progress.status === 'starting'
-      ? OPAL_SMART_SEARCH_START_STALE_MS
-      : progress.status === 'running'
-        ? OPAL_SMART_SEARCH_JOB_STALE_MS
-        : 0
+  const staleAfter = progress.status === 'starting' ? startStaleMs : progress.status === 'running' ? jobStaleMs : 0
   if (!staleAfter || !lastActivityAt || Date.now() - lastActivityAt <= staleAfter) return false
 
   opalSmartSearchWriteGeneration += 1
   await chrome.storage.local.set({
-    [OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]: {
+    [SmartSearchKey.activeProgress]: {
       ...progress,
       status: 'failed',
       updatedAt: Date.now()
@@ -1282,8 +1271,8 @@ async function canAcceptOpalSmartSearchJob(
   ownerTabId: number | undefined,
   jobStartedAt: number
 ): Promise<boolean> {
-  const result = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const progress = readOpalSmartSearchProgress(result[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const result = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const progress = readOpalSmartSearchProgress(result[SmartSearchKey.activeProgress])
   if (await expireOpalSmartSearchProgress(progress)) return false
   return (
     writeGeneration === opalSmartSearchWriteGeneration &&
@@ -1298,8 +1287,8 @@ async function publishOpalSmartSearchProgress(
   writeGeneration: number,
   ownerTabId?: number
 ): Promise<OpalActiveIndexProgress> {
-  const result = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const previous = readOpalSmartSearchProgress(result[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const result = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const previous = readOpalSmartSearchProgress(result[SmartSearchKey.activeProgress])
   if (
     writeGeneration !== opalSmartSearchWriteGeneration ||
     ownerTabId !== previous.ownerTabId ||
@@ -1327,7 +1316,7 @@ async function publishOpalSmartSearchProgress(
     indexedItems: Math.max(previous.indexedItems, readProgressCount(update.indexedItems) ?? 0),
     currentCourseTitle: update.currentCourseTitle
   }
-  await chrome.storage.local.set({ [OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]: progress })
+  await chrome.storage.local.set({ [SmartSearchKey.activeProgress]: progress })
   return progress
 }
 
@@ -1339,11 +1328,11 @@ async function commitOpalSmartSearchCourse(
   ownerTabId?: number
 ): Promise<{ completedCourses: number; failedCourses: number } | false> {
   const result = await chrome.storage.local.get([
-    OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY,
-    OPAL_SMART_SEARCH_ACTIVE_RUNS_KEY,
-    OPAL_SMART_SEARCH_SUCCESSFUL_RUNS_KEY
+    SmartSearchKey.activeProgress,
+    SmartSearchKey.activeRuns,
+    SmartSearchKey.successfulRuns
   ])
-  const progress = readOpalSmartSearchProgress(result[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+  const progress = readOpalSmartSearchProgress(result[SmartSearchKey.activeProgress])
   if (
     writeGeneration !== opalSmartSearchWriteGeneration ||
     ownerTabId !== progress.ownerTabId ||
@@ -1354,19 +1343,19 @@ async function commitOpalSmartSearchCourse(
     return false
 
   const now = Date.now()
-  const cooldowns = { ...(result[OPAL_SMART_SEARCH_ACTIVE_RUNS_KEY] || {}) }
+  const cooldowns = { ...(result[SmartSearchKey.activeRuns] || {}) }
   if (readFiniteNumber(cooldowns[courseUrl])) {
     return { completedCourses: progress.completedCourses, failedCourses: progress.failedCourses || 0 }
   }
   cooldowns[courseUrl] = now
-  const successfulRuns = { ...(result[OPAL_SMART_SEARCH_SUCCESSFUL_RUNS_KEY] || {}) }
+  const successfulRuns = { ...(result[SmartSearchKey.successfulRuns] || {}) }
   if (successful) successfulRuns[courseUrl] = now
   const completedCourses = progress.completedCourses + (successful ? 1 : 0)
   const failedCourses = (progress.failedCourses || 0) + (successful ? 0 : 1)
   await chrome.storage.local.set({
-    [OPAL_SMART_SEARCH_ACTIVE_RUNS_KEY]: cooldowns,
-    [OPAL_SMART_SEARCH_SUCCESSFUL_RUNS_KEY]: successfulRuns,
-    [OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]: {
+    [SmartSearchKey.activeRuns]: cooldowns,
+    [SmartSearchKey.successfulRuns]: successfulRuns,
+    [SmartSearchKey.activeProgress]: {
       ...progress,
       updatedAt: now,
       totalCourses: Math.max(progress.totalCourses, completedCourses + failedCourses),

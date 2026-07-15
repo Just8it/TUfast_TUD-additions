@@ -2,12 +2,7 @@ import { getIndexedOpalSearchNode, getOpalSearchIndexStats, searchIndexedOpalNod
 import { canRunActiveIndexingOnCurrentPage, startActiveIndexing } from './indexer'
 import { extractCourseIdFromUrl, urlToOpalSearchId } from './opalParser'
 import { escapeAttr, escapeHtml, renderResults } from './paletteRender'
-import {
-  OPAL_SMART_SEARCH_ACTIVE_PROGRESS_EVENT,
-  OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY,
-  OPAL_SMART_SEARCH_HIGHLIGHT_KEY,
-  OPAL_SMART_SEARCH_SUCCESSFUL_RUNS_KEY
-} from '../../../../modules/opalSmartSearch/settings'
+import { SmartSearchKey, smartSearchProgressEvent } from '../../../../modules/opalSmartSearch/settings'
 import type { OpalActiveIndexProgress, OpalSearchResult } from '../../../../modules/opalSmartSearch/types'
 import { normalizeAllowedOpalUrl } from '../../../../modules/opalSmartSearch/urlPolicy'
 import {
@@ -208,21 +203,21 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
   }
 
   const onStorageChanged = (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
-    if (areaName !== 'local' || !changes[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY]) return
-    activeIndexProgress = readActiveIndexProgress(changes[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY].newValue)
+    if (areaName !== 'local' || !changes[SmartSearchKey.activeProgress]) return
+    activeIndexProgress = readActiveIndexProgress(changes[SmartSearchKey.activeProgress].newValue)
     controlError = null
     if (activeIndexProgress?.status === 'done') improveRecommended = false
     render()
   }
 
-  window.addEventListener(OPAL_SMART_SEARCH_ACTIVE_PROGRESS_EVENT, onActiveIndexProgress)
+  window.addEventListener(smartSearchProgressEvent, onActiveIndexProgress)
   chrome.storage.onChanged.addListener(onStorageChanged)
 
   const close = () => {
     requestId += 1
     controlRequestId += 1
     window.clearTimeout(debounce)
-    window.removeEventListener(OPAL_SMART_SEARCH_ACTIVE_PROGRESS_EVENT, onActiveIndexProgress)
+    window.removeEventListener(smartSearchProgressEvent, onActiveIndexProgress)
     chrome.storage.onChanged.removeListener(onStorageChanged)
     overlay.remove()
     document.body.style.overflow = previousBodyOverflow
@@ -377,8 +372,8 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
       })
       if (currentControlRequest !== controlRequestId) return
       if (!succeeded) throw new Error('SmartSearch indexing control failed')
-      const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-      activeIndexProgress = readActiveIndexProgress(data[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+      const data = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+      activeIndexProgress = readActiveIndexProgress(data[SmartSearchKey.activeProgress])
     } catch (error) {
       if (currentControlRequest !== controlRequestId) return
       controlError = stopping ? strings.preloadStopFailed : strings.preloadStartFailed
@@ -407,7 +402,7 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
       const fileUrl = normalizeAllowedOpalUrl(selected.node.url)
       if (parentUrl && fileUrl) {
         await chrome.storage.local.set({
-          [OPAL_SMART_SEARCH_HIGHLIGHT_KEY]: { title: selected.node.title, url: fileUrl }
+          [SmartSearchKey.highlight]: { title: selected.node.title, url: fileUrl }
         })
         location.href = parentUrl
         return
@@ -492,18 +487,18 @@ async function getDefaultResults(): Promise<PaletteDefaults> {
     'favoriten',
     'meine_kurse',
     'theme',
-    OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY,
-    OPAL_SMART_SEARCH_SUCCESSFUL_RUNS_KEY
+    SmartSearchKey.activeProgress,
+    SmartSearchKey.successfulRuns
   ])
   const activeIndexProgress = readActiveIndexProgress(
     await chrome.runtime
       .sendMessage({ cmd: 'opal_smart_search_progress' })
-      .catch(() => data[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
+      .catch(() => data[SmartSearchKey.activeProgress])
   )
   const stats = await getOpalSearchIndexStats()
   const favorites = uniqueStoredCourses(readStoredCourses(data.favoriten))
   const defaultCourses = favorites.length ? favorites : uniqueStoredCourses(readStoredCourses(data.meine_kurse))
-  const successfulRuns = readSuccessfulRuns(data[OPAL_SMART_SEARCH_SUCCESSFUL_RUNS_KEY])
+  const successfulRuns = readSuccessfulRuns(data[SmartSearchKey.successfulRuns])
   const courseResults: OpalSearchResult[] = []
   const seen = new Set<string>()
 

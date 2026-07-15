@@ -1,7 +1,8 @@
 import type { NotificationNamespace } from '../notification'
 
 let opalParseCoursesStrings: typeof globalThis.TUFAST_STRINGS.opal
-const OPAL_SMART_SEARCH_FAVORITES_DETECTED_KEY = 'opalSmartSearchFavoritesDetectedAt'
+// Classic content scripts can't import; mirrors SmartSearchKey.favoritesDetectedAt (verify-smart-search.mjs guards the match).
+const favoritesDetectedKey = 'opalSmartSearchFavoritesDetectedAt'
 
 interface Course {
   name: string
@@ -169,7 +170,7 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
     const updateObj: Record<string, string | number> = {}
     if (coursesChanged) updateObj.meine_kurse = JSON.stringify(courses)
     if (favouritesChanged || renderedEmptyFavorites) updateObj.favoriten = JSON.stringify(favorites)
-    if (currentPage === 'favoriten') updateObj[OPAL_SMART_SEARCH_FAVORITES_DETECTED_KEY] = Date.now()
+    if (currentPage === 'favoriten') updateObj[favoritesDetectedKey] = Date.now()
 
     if (Object.keys(updateObj).length > 0) {
       await chrome.storage.local.set(updateObj)

@@ -1,13 +1,13 @@
-import { OPAL_SMART_SEARCH_HIGHLIGHT_KEY } from '../../../../modules/opalSmartSearch/settings'
+import { SmartSearchKey } from '../../../../modules/opalSmartSearch/settings'
 import { normalizeAllowedOpalUrl } from '../../../../modules/opalSmartSearch/urlPolicy'
 
 export async function checkAndHighlightIndexedFile(): Promise<void> {
-  const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_HIGHLIGHT_KEY])
-  const intent = data[OPAL_SMART_SEARCH_HIGHLIGHT_KEY] as { title: string; url: string } | undefined
+  const data = await chrome.storage.local.get([SmartSearchKey.highlight])
+  const intent = data[SmartSearchKey.highlight] as { title: string; url: string } | undefined
   const targetUrl = intent ? normalizeAllowedOpalUrl(intent.url) : null
   if (!intent || !targetUrl) return
 
-  await chrome.storage.local.remove([OPAL_SMART_SEARCH_HIGHLIGHT_KEY])
+  await chrome.storage.local.remove([SmartSearchKey.highlight])
   // OPAL often renders file rows shortly after navigation, especially inside course folders.
   if (!tryHighlightFile(intent, targetUrl)) window.setTimeout(() => tryHighlightFile(intent, targetUrl), 800)
 }

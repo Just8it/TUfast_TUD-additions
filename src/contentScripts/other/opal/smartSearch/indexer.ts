@@ -16,11 +16,7 @@ import {
   readBestLinkTitle,
   urlToOpalSearchId
 } from './opalParser'
-import {
-  loadSmartSearchSettings,
-  OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY,
-  OPAL_SMART_SEARCH_ACTIVE_RUNS_KEY
-} from '../../../../modules/opalSmartSearch/settings'
+import { loadSmartSearchSettings, SmartSearchKey } from '../../../../modules/opalSmartSearch/settings'
 import type {
   OpalActiveIndexProgress,
   OpalSearchNode,
@@ -172,11 +168,11 @@ async function runActiveIndexing(): Promise<void> {
   const data = await chrome.storage.local.get([
     'favoriten',
     'meine_kurse',
-    OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY,
-    OPAL_SMART_SEARCH_ACTIVE_RUNS_KEY
+    SmartSearchKey.activeProgress,
+    SmartSearchKey.activeRuns
   ])
-  const previousProgress = data[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY] as OpalActiveIndexProgress | undefined
-  const cooldowns = (data[OPAL_SMART_SEARCH_ACTIVE_RUNS_KEY] || {}) as Record<string, number>
+  const previousProgress = data[SmartSearchKey.activeProgress] as OpalActiveIndexProgress | undefined
+  const cooldowns = (data[SmartSearchKey.activeRuns] || {}) as Record<string, number>
   const toIndex = readActiveCourseTargets(data).filter(
     (course) => Date.now() - (cooldowns[course.url] || 0) > ACTIVE_INDEX_COOLDOWN_MS
   )
@@ -278,8 +274,8 @@ async function runActiveIndexing(): Promise<void> {
 
 export async function startActiveIndexing(): Promise<void> {
   if (!canRunActiveIndexingOnCurrentPage()) throw new Error('OPAL is not ready for active indexing yet')
-  const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const progress = data[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY] as OpalActiveIndexProgress | undefined
+  const data = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const progress = data[SmartSearchKey.activeProgress] as OpalActiveIndexProgress | undefined
   if (!progress || progress.status !== 'running') return
 
   try {
@@ -297,8 +293,8 @@ export function canRunActiveIndexingOnCurrentPage(): boolean {
 
 export async function handleActiveIndexFailure(error: unknown, jobStartedAt = activeJobStartedAt): Promise<void> {
   console.warn('[TUfast Smart Search] Active indexing failed:', error)
-  const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY])
-  const progress = data[OPAL_SMART_SEARCH_ACTIVE_PROGRESS_KEY] as OpalActiveIndexProgress | undefined
+  const data = await chrome.storage.local.get([SmartSearchKey.activeProgress])
+  const progress = data[SmartSearchKey.activeProgress] as OpalActiveIndexProgress | undefined
   if (jobStartedAt && progress?.status === 'running' && progress.startedAt === jobStartedAt) {
     await publishActiveIndexProgress({ status: 'failed', startedAt: jobStartedAt })
   }

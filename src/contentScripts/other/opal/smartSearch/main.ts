@@ -1,7 +1,6 @@
-const OPAL_SMART_SEARCH_OPEN_AFTER_OPAL_LOAD_KEY = 'opalSmartSearchOpenAfterOpalLoad'
-const OPAL_SMART_SEARCH_DEBUG_DUMP_EVENT = 'tufast-smart-search-debug-dump'
-const OPAL_SMART_SEARCH_DEBUG_DUMP_READY_EVENT = 'tufast-smart-search-debug-dump-ready'
-const OPAL_SMART_SEARCH_DEBUG_DUMP_ID = 'tufast-smart-search-debug-dump-json'
+const debugDumpEvent = 'tufast-smart-search-debug-dump'
+const debugDumpReadyEvent = 'tufast-smart-search-debug-dump-ready'
+const debugDumpId = 'tufast-smart-search-debug-dump-json'
 
 ;(async () => {
   // Only run on OPAL pages
@@ -25,7 +24,7 @@ const OPAL_SMART_SEARCH_DEBUG_DUMP_ID = 'tufast-smart-search-debug-dump-json'
   paletteModule.bindOpalSmartSearchPalette(strings)
   bindDebugDumpBridge()
   await highlightModule.checkAndHighlightIndexedFile()
-  await openPaletteFromPendingHotkey(paletteModule, strings)
+  await openPaletteFromPendingHotkey(paletteModule, strings, settingsModule.SmartSearchKey.openAfterOpalLoad)
 
   // Index what the user already sees
   await indexerModule.bootstrapCoursesFromStorage()
@@ -37,8 +36,8 @@ function bindDebugDumpBridge(): void {
   if ((window as any)[marker]) return
   ;(window as any)[marker] = true
 
-  // ponytail: temporary beta debug bridge; remove before the merge-ready release build.
-  window.addEventListener(OPAL_SMART_SEARCH_DEBUG_DUMP_EVENT, () => {
+  // Temporary beta debug bridge; remove before the merge-ready release build (see AGENTS_DOCS.md).
+  window.addEventListener(debugDumpEvent, () => {
     chrome.runtime
       .sendMessage({ cmd: 'opal_smart_search_dump_nodes' })
       .then((dump) => {
@@ -51,29 +50,30 @@ function bindDebugDumpBridge(): void {
 }
 
 function writeDebugDump(json: string): void {
-  let target = document.getElementById(OPAL_SMART_SEARCH_DEBUG_DUMP_ID) as HTMLTextAreaElement | null
+  let target = document.getElementById(debugDumpId) as HTMLTextAreaElement | null
   if (!target) {
     target = document.createElement('textarea')
-    target.id = OPAL_SMART_SEARCH_DEBUG_DUMP_ID
+    target.id = debugDumpId
     target.hidden = true
     document.documentElement.appendChild(target)
   }
 
   target.value = json
   target.textContent = json
-  window.dispatchEvent(new CustomEvent(OPAL_SMART_SEARCH_DEBUG_DUMP_READY_EVENT))
+  window.dispatchEvent(new CustomEvent(debugDumpReadyEvent))
 }
 
 async function openPaletteFromPendingHotkey(
   paletteModule: typeof import('./palette'),
-  strings: typeof globalThis.TUFAST_STRINGS.opal.smartSearch
+  strings: typeof globalThis.TUFAST_STRINGS.opal.smartSearch,
+  storageKey: string
 ): Promise<void> {
-  const data = await chrome.storage.local.get([OPAL_SMART_SEARCH_OPEN_AFTER_OPAL_LOAD_KEY])
-  const pending = readPendingPaletteOpen(data[OPAL_SMART_SEARCH_OPEN_AFTER_OPAL_LOAD_KEY])
+  const data = await chrome.storage.local.get([storageKey])
+  const pending = readPendingPaletteOpen(data[storageKey])
   const expiresAt = pending.expiresAt
   if (!expiresAt) return
 
-  await chrome.storage.local.remove([OPAL_SMART_SEARCH_OPEN_AFTER_OPAL_LOAD_KEY])
+  await chrome.storage.local.remove([storageKey])
   if (Date.now() > expiresAt) return
 
   window.setTimeout(() => {

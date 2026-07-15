@@ -1,4 +1,4 @@
-import { OPAL_SMART_SEARCH_ACTIVE_PROGRESS_EVENT } from '../../../../modules/opalSmartSearch/settings'
+import { smartSearchProgressEvent } from '../../../../modules/opalSmartSearch/settings'
 import type { OpalActiveIndexProgress } from '../../../../modules/opalSmartSearch/types'
 
 export type ActiveIndexProgressUpdate = Partial<
@@ -12,6 +12,6 @@ export async function publishActiveIndexProgress(update: ActiveIndexProgressUpda
     cmd: 'opal_smart_search_publish_progress',
     update
   })) as OpalActiveIndexProgress
-  window.dispatchEvent(new CustomEvent(OPAL_SMART_SEARCH_ACTIVE_PROGRESS_EVENT, { detail: progress }))
+  window.dispatchEvent(new CustomEvent(smartSearchProgressEvent, { detail: progress }))
   return progress
 }

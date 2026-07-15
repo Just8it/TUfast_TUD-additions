@@ -33,6 +33,7 @@ import type {
 import Setting from '../components/Setting.vue'
 import TufastButton from '../components/Button.vue'
 import { useSettingHandler } from '../composables/setting-handler'
+import { SmartSearchKey } from '../../../modules/opalSmartSearch/settings'
 
 export default defineComponent({
   components: {
@@ -172,7 +173,7 @@ export default defineComponent({
     })
 
     const onStorageChanged = (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => {
-      const change = changes.opalSmartSearchActiveProgress
+      const change = changes[SmartSearchKey.activeProgress]
       if (areaName !== 'local' || !change) return
       controlError.value = false
       progress.value = change.newValue

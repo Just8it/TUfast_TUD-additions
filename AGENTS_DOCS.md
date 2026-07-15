@@ -38,6 +38,7 @@ Routing rule: needed on every task → `AGENTS.md`. Durable area-specific knowle
 - Centralize navigation/control filtering and course scoping in `urlPolicy.ts`. Explicit file signals must win over `CourseNode`, because OPAL downloads often contain both; cross-course results need a separate type rather than entering the course graph.
 - Improve must revisit existing sections so extractor fixes can repair old data. Only a complete rendered crawl may prune stale nodes or count as successful; partial and fallback crawls may retain useful nodes but remain incomplete.
 - Crawling and passive discovery record zero visits. Interrupted jobs resume under the same generation and owner with monotonic counters.
+- Storage keys and settings vars are camelCase, never SCREAMING_CASE. SmartSearch groups them in one `SmartSearchKey` object in `modules/opalSmartSearch/settings.ts` (progress event and stale thresholds sit beside it) so every surface shares one definition. Classic content scripts that can't import it (`parseCourses.ts`) mirror a key as a literal, guarded in `verify-smart-search.mjs`. That script also prints an advisory (non-failing) note when a new SCREAMING_CASE string const appears; pre-existing non-key ones are allowlisted there.
 
 
 ## ToDo — improvement ideas

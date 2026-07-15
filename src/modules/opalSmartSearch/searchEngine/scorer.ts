@@ -11,8 +11,7 @@ interface ScoreCandidatesOptions {
   limit?: number
 }
 
-// Keep ranking weights in one object so future tuning is cheap. If Oli wants JSON/user-adjustable scoring later,
-// move this object into an imported config and leave `scoreCandidates` unchanged.
+// Keep ranking weights together so later config extraction does not change `scoreCandidates`.
 const SCORE_WEIGHTS = {
   primaryTitleNumber: 42,
   secondaryTitleNumber: 10,
