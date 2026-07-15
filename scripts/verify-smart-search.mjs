@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync, readdirSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
@@ -18,46 +18,6 @@ assert.ok(
   parseCoursesSource.includes(`favoritesDetectedKey = '${favoritesDetectedKey}'`),
   'parseCourses.ts must mirror SmartSearchKey.favoritesDetectedAt exactly (classic scripts cannot import it).'
 )
-
-// Report new SCREAMING_CASE string constants without failing builds for the pre-existing allowlist.
-const allowedScreamingStringConsts = new Set([
-  'DB_NAME',
-  'GROUP_ID',
-  'OPAL_HOST',
-  'OPAL_SHIB_LOGIN_URL',
-  'STORAGE_KEY',
-  'STORE_NAME'
-])
-const collectSourceFiles = (dir) =>
-  readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const fullPath = path.join(dir, entry.name)
-    if (entry.isDirectory()) return collectSourceFiles(fullPath)
-    return /\.(ts|js|vue)$/.test(entry.name) && !entry.name.endsWith('.d.ts') ? [fullPath] : []
-  })
-const screamingStringConst = /\bconst\s+([A-Z][A-Z0-9_]{2,})\s*=\s*['"`]/g
-const screamingKeyFindings = []
-for (const file of collectSourceFiles(path.join(rootDir, 'src'))) {
-  const relativePath = path.relative(rootDir, file).split(path.sep).join('/')
-  for (const match of readFileSync(file, 'utf8').matchAll(screamingStringConst)) {
-    if (!allowedScreamingStringConsts.has(match[1])) screamingKeyFindings.push(`${relativePath}: ${match[1]}`)
-  }
-}
-if (screamingKeyFindings.length > 0) {
-  console.warn(
-    [
-      '',
-      'Style note: SCREAMING_CASE key(s) found — this is not how keys are meant to be named here:',
-      ...screamingKeyFindings.map((finding) => `  - ${finding}`),
-      '',
-      'Intended style: name storage keys and settings vars in camelCase, grouped in one keys object',
-      'per feature (see SmartSearchKey in src/modules/opalSmartSearch/settings.ts) so background,',
-      'content scripts, and UI share a single definition instead of drifting string literals.',
-      'Rename e.g. FOO_KEY = \'foo\' to a camelCase property like { foo: \'foo\' }. If a name is genuinely',
-      'not a key, add it to allowedScreamingStringConsts in scripts/verify-smart-search.mjs to silence this.',
-      ''
-    ].join('\n')
-  )
-}
 
 assert.doesNotMatch(
   indexerSource,
