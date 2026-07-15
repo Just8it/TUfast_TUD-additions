@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import Settings from './Settings.vue'
-import '@lottiefiles/lottie-player'
+import { initLocale, t } from '../../i18n'
+import '../../styles/palette_new/palette_new.sass'
 // Import needed Icons from Tabler Vue
 import {
   IconArrowUpRight,
@@ -36,41 +37,46 @@ import {
   IconConfetti
 } from '@tabler/icons-vue'
 
-// Create the app instance
-const app = createApp(Settings)
+// Load the stored locale before rendering translated settings text.
+async function main() {
+  await initLocale()
+  document.title = t('settings.documentTitle')
+  const app = createApp(Settings)
 
-// Register Tabler icons globally
-app.component('IconArrowUpRight', IconArrowUpRight)
-app.component('IconWorld', IconWorld)
-app.component('IconShield', IconShield)
-app.component('IconChevronDown', IconChevronDown)
-app.component('IconLock', IconLock)
-app.component('IconNotification', IconNotification)
-app.component('IconList', IconList)
-app.component('IconFileText', IconFileText)
-app.component('IconChartBar', IconChartBar)
-app.component('IconBrandSpeedtest', IconBrandSpeedtest)
-app.component('IconSearch', IconSearch)
-app.component('IconRocket', IconRocket)
-app.component('IconInfoCircle', IconInfoCircle)
-app.component('IconMail', IconMail)
-app.component('IconSchool', IconSchool)
-app.component('IconLanguage', IconLanguage)
-app.component('IconCheck', IconCheck)
-app.component('IconClick', IconClick)
-app.component('IconStopwatch', IconStopwatch)
-app.component('IconArrowRight', IconArrowRight)
-app.component('IconX', IconX)
-app.component('IconCircleX', IconCircleX)
-app.component('IconCircleCheck', IconCircleCheck)
-app.component('IconAlertCircle', IconAlertCircle)
-app.component('IconPointFilled', IconPointFilled)
-app.component('IconHeartHandshake', IconHeartHandshake)
-app.component('IconAdjustments', IconAdjustments)
-app.component('IconChevronLeft', IconChevronLeft)
-app.component('IconSettings', IconSettings)
-app.component('IconLogin2', IconLogin2)
-app.component('IconConfetti', IconConfetti)
+  // Register Tabler icons globally
+  app.component('IconArrowUpRight', IconArrowUpRight)
+  app.component('IconWorld', IconWorld)
+  app.component('IconShield', IconShield)
+  app.component('IconChevronDown', IconChevronDown)
+  app.component('IconLock', IconLock)
+  app.component('IconNotification', IconNotification)
+  app.component('IconList', IconList)
+  app.component('IconFileText', IconFileText)
+  app.component('IconChartBar', IconChartBar)
+  app.component('IconBrandSpeedtest', IconBrandSpeedtest)
+  app.component('IconSearch', IconSearch)
+  app.component('IconRocket', IconRocket)
+  app.component('IconInfoCircle', IconInfoCircle)
+  app.component('IconMail', IconMail)
+  app.component('IconSchool', IconSchool)
+  app.component('IconLanguage', IconLanguage)
+  app.component('IconCheck', IconCheck)
+  app.component('IconClick', IconClick)
+  app.component('IconStopwatch', IconStopwatch)
+  app.component('IconArrowRight', IconArrowRight)
+  app.component('IconX', IconX)
+  app.component('IconCircleX', IconCircleX)
+  app.component('IconCircleCheck', IconCircleCheck)
+  app.component('IconAlertCircle', IconAlertCircle)
+  app.component('IconPointFilled', IconPointFilled)
+  app.component('IconHeartHandshake', IconHeartHandshake)
+  app.component('IconAdjustments', IconAdjustments)
+  app.component('IconChevronLeft', IconChevronLeft)
+  app.component('IconSettings', IconSettings)
+  app.component('IconLogin2', IconLogin2)
+  app.component('IconConfetti', IconConfetti)
 
-// Mount your app
-app.mount('#app')
+  app.mount('#app')
+}
+
+main()

@@ -71,6 +71,7 @@ function getWeightedAverage(grades: ModuleGrades): number {
 ;(async () => {
   const container = document.getElementById('TUfastGradeContainer')
   if (!container) return
+  const strings = container.dataset
 
   const grades = parseGrades()
   if (!grades) return
@@ -84,9 +85,18 @@ function getWeightedAverage(grades: ModuleGrades): number {
     statistik.push(p)
   }
 
-  statistik[0].innerHTML = `Deine Durchschnittnote (nach CP gewichtet): ${getWeightedAverage(grades.modules).toFixed(2)}`
-  statistik[1].innerHTML = `Anzahl Module: ${Object.keys(grades.modules).length}`
-  statistik[2].innerHTML = `Anzahl Prüfungen: ${Object.keys(grades.exams).length}`
+  statistik[0].innerHTML = (strings.weightedAverage || 'Deine Durchschnittnote (nach CP gewichtet): {average}').replace(
+    '{average}',
+    getWeightedAverage(grades.modules).toFixed(2)
+  )
+  statistik[1].innerHTML = (strings.moduleCount || 'Anzahl Module: {count}').replace(
+    '{count}',
+    String(Object.keys(grades.modules).length)
+  )
+  statistik[2].innerHTML = (strings.examCount || 'Anzahl Prüfungen: {count}').replace(
+    '{count}',
+    String(Object.keys(grades.exams).length)
+  )
 
   container.append(canvas, ...statistik)
 
@@ -98,7 +108,7 @@ function getWeightedAverage(grades: ModuleGrades): number {
   const gradeChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['1', '2', '3', '4', 'nicht bestanden'],
+      labels: ['1', '2', '3', '4', strings.failed || 'nicht bestanden'],
       datasets: [
         {
           data: countGrades(grades.exams),

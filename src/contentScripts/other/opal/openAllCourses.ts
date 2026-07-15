@@ -1,4 +1,7 @@
-;(function () {
+let opalOpenAllCoursesStrings: typeof globalThis.TUFAST_STRINGS.opal
+;(async function () {
+  opalOpenAllCoursesStrings = (await globalThis.TUFAST_STRINGS_READY).opal
+
   // Main injection logic
   async function injectOpenAllCoursesButton() {
     // Check if button already exists
@@ -10,8 +13,8 @@
 
     const openAllCoursesButton = document.createElement('span')
     openAllCoursesButton.id = 'openAllCoursesButton'
-    openAllCoursesButton.textContent = 'Alle Kurse öffnen'
-    openAllCoursesButton.title = 'Alle Kurse öffnen. Ein TUfast-Feature.'
+    openAllCoursesButton.textContent = opalOpenAllCoursesStrings.openAllCourses
+    openAllCoursesButton.title = opalOpenAllCoursesStrings.openAllCoursesTitle
     openAllCoursesButton.style.opacity = '1'
     openAllCoursesButton.style.cursor = 'pointer'
     openAllCoursesButton.style.pointerEvents = 'auto'
