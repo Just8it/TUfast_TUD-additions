@@ -76,7 +76,7 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
     chrome.runtime.getURL('contentScripts/other/notification.js')
   )
 
-  const mainFunction = async () => {
+  const mainFunction = async (settled = true) => {
     // We are only interested in these two pages
     if (
       window.location.pathname !== '/opal/auth/resource/courses' &&
@@ -92,21 +92,11 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
     const pages = document.querySelectorAll('li.page').length
     if (pages > 1) {
       const showAll = document.getElementsByClassName('pager-showall')[0]
-      // Inlined (no top-level helper): a minified `t()` helper collides with `sort((e,t)=>…)` and
-      // `t(e)` can call the wrong binding, so `getAttribute` runs on `undefined`.
-      if (showAll instanceof HTMLAnchorElement) {
-        const rawHref = showAll.getAttribute('href')?.trim() ?? ''
-        const safePagerHref =
-          !!rawHref &&
-          rawHref !== '#' &&
-          !rawHref.toLowerCase().startsWith('javascript:') &&
-          showAll.protocol !== 'javascript:'
-        if (safePagerHref) {
-          showAll.click()
-          return
-        }
+      // OPAL pagers use `#`/`javascript:` hrefs with real click listeners — click unconditionally.
+      if (showAll instanceof HTMLElement) {
+        showAll.click()
+        return
       }
-      // Pager uses `javascript:` or is missing: do not click (CSP) — parse the visible page instead.
     }
 
     const tablePanel = document.getElementsByClassName('table-panel')[0] as HTMLElement | undefined
@@ -119,10 +109,11 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
 
     const { courses, favorites } = previewContainer ? parseList(previewContainer) : parseTable(tableBody)
 
+    const emptyStateMarker = !!tablePanel.querySelector('.empty-state, [class*="empty-state"], [data-empty-state]')
+    // OPAL can render zero favorites without any empty-state marker: also accept a settled
+    // (debounced, not forced) parse of a rendered panel with no rows and no pager.
     const renderedEmptyFavorites =
-      currentPage === 'favoriten' &&
-      courses.length === 0 &&
-      !!tablePanel.querySelector('.empty-state, [class*="empty-state"], [data-empty-state]')
+      currentPage === 'favoriten' && courses.length === 0 && (emptyStateMarker || (settled && pages <= 1))
 
     // If the user has no courses - nothing to do here anymore (favorites can only be a subset of courses, so no check needed)
     if (courses.length === 0 && !renderedEmptyFavorites) return
@@ -169,7 +160,10 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
     // eslint-disable-next-line camelcase
     const updateObj: Record<string, string | number> = {}
     if (coursesChanged) updateObj.meine_kurse = JSON.stringify(courses)
-    if (favouritesChanged || renderedEmptyFavorites) updateObj.favoriten = JSON.stringify(favorites)
+    // The zero-rows heuristic must not wipe a non-empty stored list — only the explicit marker may.
+    const canConfirmEmptyFavorites = emptyStateMarker || !currentFavourites?.length
+    if (courses.length > 0 ? favouritesChanged : canConfirmEmptyFavorites)
+      updateObj.favoriten = JSON.stringify(favorites)
     if (currentPage === 'favoriten') updateObj[favoritesDetectedKey] = Date.now()
 
     if (Object.keys(updateObj).length > 0) {
@@ -188,9 +182,18 @@ function parseList(previewContainer: HTMLDivElement | undefined | null): ParseRe
   if (!content) return
 
   let parseTimeout = 0
+  let maxWaitTimeout = 0
+  const runMainFunction = (settled: boolean) => {
+    window.clearTimeout(parseTimeout)
+    window.clearTimeout(maxWaitTimeout)
+    maxWaitTimeout = 0
+    mainFunction(settled)
+  }
   const scheduleMainFunction = () => {
     window.clearTimeout(parseTimeout)
-    parseTimeout = window.setTimeout(mainFunction, 800)
+    parseTimeout = window.setTimeout(() => runMainFunction(true), 800)
+    // A page that never pauses mutating must still parse; forced runs skip the empty-favorites heuristic.
+    if (!maxWaitTimeout) maxWaitTimeout = window.setTimeout(() => runMainFunction(false), 5000)
   }
 
   new MutationObserver(scheduleMainFunction).observe(content, { subtree: true, childList: true })

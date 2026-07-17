@@ -857,10 +857,13 @@ async function openOpalSmartSearch(currentTab?: chrome.tabs.Tab, rawQuery?: stri
   }
 
   if (currentTab?.id && currentTab.url && isAllowedOpalUrl(currentTab.url)) {
-    const opened = await sendOpenOpalSmartSearch(currentTab.id, rawQuery)
-    if (opened) {
-      await saveClicks(2)
-      return true
+    // A still-initializing OPAL tab has no receiver yet — retry briefly instead of opening a duplicate tab.
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      if (attempt > 0) await delay(400)
+      if (await sendOpenOpalSmartSearch(currentTab.id, rawQuery)) {
+        await saveClicks(2)
+        return true
+      }
     }
   }
 

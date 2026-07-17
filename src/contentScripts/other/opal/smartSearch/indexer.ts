@@ -231,7 +231,12 @@ async function runActiveIndexing(): Promise<void> {
         break
       }
       if (result.complete) {
-        await pruneIndexedOpalCourse(extractCourseIdFromUrl(course.url), courseStartedAt, startedAt)
+        try {
+          await pruneIndexedOpalCourse(extractCourseIdFromUrl(course.url), courseStartedAt, startedAt)
+        } catch (error) {
+          // A failed prune only leaves stale nodes for the next crawl — it must not fail the indexed course.
+          console.warn('[TUfast Smart Search] Pruning stale course nodes failed:', error)
+        }
       }
       const committed = await commitActiveIndexedCourse(course.url, startedAt, result.complete)
       completedCourses = committed.completedCourses

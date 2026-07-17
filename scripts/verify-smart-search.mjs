@@ -96,13 +96,18 @@ assert.match(
 )
 assert.match(
   parseCoursesSource,
-  /renderedEmptyFavorites[\s\S]*empty-state[\s\S]*courses\.length === 0 && !renderedEmptyFavorites/,
-  'The favorites parser must acknowledge only parsed courses or an explicit empty state.'
+  /empty-state[\s\S]*renderedEmptyFavorites[\s\S]*courses\.length === 0 && !renderedEmptyFavorites/,
+  'The favorites parser must acknowledge only parsed courses, an explicit empty state, or a settled empty render.'
 )
 assert.match(
   parseCoursesSource,
-  /setTimeout\(mainFunction, 800\)/,
+  /setTimeout\(\(\) => runMainFunction\(true\), 800\)/,
   'Favorites parsing must wait for OPAL mutations to settle before acknowledging startup.'
+)
+assert.match(
+  parseCoursesSource,
+  /setTimeout\(\(\) => runMainFunction\(false\), 5000\)/,
+  'A continuously mutating OPAL page must still parse via the max-wait fallback.'
 )
 assert.match(
   mainSource,

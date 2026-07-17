@@ -38,7 +38,7 @@ export function searchOpalNodesFromGraph(
     limit: limit * 3
   })
 
-  const deduped = dedupeByUrl(results)
+  const deduped = dedupeById(results)
   if (parsed.typeFilter !== 'file') return deduped.slice(0, limit)
 
   const folderCandidates = adapter.candidates({ ...parsed, typeFilter: null, extensionFilter: null })
@@ -51,7 +51,7 @@ export function searchOpalNodesFromGraph(
     limit: limit * 3
   })
 
-  return dedupeByUrl([...deduped, ...folderFiles].sort((a, b) => b.score - a.score)).slice(0, limit)
+  return dedupeById([...deduped, ...folderFiles].sort((a, b) => b.score - a.score)).slice(0, limit)
 }
 
 function ensureCandidateAdapter(nodes: OpalSearchNode[]): CandidateAdapter {
@@ -78,14 +78,14 @@ async function getSearchGraphNodes(): Promise<OpalSearchNode[]> {
   return nodes
 }
 
-function dedupeByUrl(results: OpalSearchResult[]): OpalSearchResult[] {
+function dedupeById(results: OpalSearchResult[]): OpalSearchResult[] {
   const seen = new Set<string>()
   const deduped: OpalSearchResult[] = []
 
   for (const result of results) {
-    const key = result.node.url.replace(/\/+$/, '').split('?')[0]
-    if (seen.has(key)) continue
-    seen.add(key)
+    // Node ids are the one identity definition (they keep e.g. `assid=` queries) — don't re-derive a weaker key.
+    if (seen.has(result.node.id)) continue
+    seen.add(result.node.id)
     deduped.push(result)
   }
 

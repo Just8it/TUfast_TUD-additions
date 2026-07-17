@@ -70,10 +70,12 @@ export function mergeOpalSearchNode(
 ): OpalSearchNode {
   const addedVisits = Math.max(0, node.visitCount || 0)
   const wasVisited = addedVisits > 0
+  // Producers emit optional fields as undefined; those must not erase stored values.
+  const incoming = Object.fromEntries(Object.entries(node).filter(([, value]) => value !== undefined)) as OpalSearchNode
 
   return {
     ...existing,
-    ...node,
+    ...incoming,
     visitCount: (existing?.visitCount || 0) + addedVisits,
     lastVisited: wasVisited ? node.lastVisited || now : existing?.lastVisited || 0,
     indexedAt: now,
@@ -133,8 +135,14 @@ async function pruneOpalSearchCourseNow(courseId: string, olderThan: number): Pr
   const repositoryId = extractOpalRepositoryId(courseId)
   if (!repositoryId || !Number.isFinite(olderThan)) return 0
 
+  // User-visited nodes keep their visit history even when a crawl no longer emits them.
   const staleIds = (await getAllStoredOpalSearchNodes())
-    .filter((node) => extractOpalRepositoryId(node.courseId) === repositoryId && (node.indexedAt || 0) < olderThan)
+    .filter(
+      (node) =>
+        node.source !== 'user' &&
+        extractOpalRepositoryId(node.courseId) === repositoryId &&
+        (node.indexedAt || 0) < olderThan
+    )
     .map((node) => node.id)
   if (staleIds.length === 0) return 0
 

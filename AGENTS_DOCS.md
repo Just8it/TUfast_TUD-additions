@@ -47,3 +47,7 @@ Agent-suggested improvements to the project and codebase, recorded as context fo
 
 - Persistent retry counter as a failsafe for auto-login, capping attempts even when string detection breaks (maintainer-discussed in #156/#160; prototype in A-K-O-R-A's `feature.login-timouts` branch). Complements, not replaces, the string detection.
 - Human-requested beta exception: keep the temporary SmartSearch OPAL-console dump bridge during diagnosis. Remove `opal_smart_search_dump_nodes` and `tufast-smart-search-debug-dump` before the merge-ready release build.
+- Consolidate duplicated SmartSearch knowledge: course-id parsing (`urlPolicy.ts`/`graph.ts`/`opalParser.ts`, format-incompatible outputs), file-extension lists (3–4 copies), folder/file/course classification (4 places), and hand-written status-literal predicates (~10 call sites → shared `isInFlight`/`isTerminal` guards).
+- SmartSearch performance: persist derived search fields at write time instead of `rebuildGraphFields` on every full read; parallelize the sequential awaits on palette open.
+- SmartSearch UX: show per-course index freshness in the palette ("last improved X ago") so Improve isn't a black box.
+- Left unverified by the 2026-07 review: `startActiveIndexing` silently returns when progress isn't `running` (background may believe indexing started), and `publishActiveIndexProgress` dispatches whatever `sendMessage` returned (possibly `undefined`) as the progress event — check both when next working in `indexer.ts`.

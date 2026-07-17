@@ -71,16 +71,14 @@ export function scoreCandidates({
         score += SCORE_WEIGHTS.primaryTitleNumber
       } else if (titleNumbers.includes(number)) {
         score += SCORE_WEIGHTS.secondaryTitleNumber
+      } else if (pathNumbers.includes(number)) {
+        // A matching path number (e.g. folder "Analysis 2") suppresses the title-mismatch penalty,
+        // otherwise the correct file would fall below the score gate.
+        score += SCORE_WEIGHTS.pathNumber
+      } else if (titleHasNumbers) {
+        score += SCORE_WEIGHTS.titleNumberMismatch
       } else {
-        if (pathNumbers.includes(number)) {
-          score += SCORE_WEIGHTS.pathNumber
-        }
-
-        if (titleHasNumbers) {
-          score += SCORE_WEIGHTS.titleNumberMismatch
-        } else if (!pathNumbers.includes(number)) {
-          score += SCORE_WEIGHTS.missingExactNumber
-        }
+        score += SCORE_WEIGHTS.missingExactNumber
       }
     }
 
