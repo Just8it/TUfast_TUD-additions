@@ -35,6 +35,16 @@ import TufastButton from '../components/Button.vue'
 import { useSettingHandler } from '../composables/setting-handler'
 import { SmartSearchKey } from '../../../modules/opalSmartSearch/settings'
 
+const idleProgress = (): ResponseOpalSmartSearchProgress => ({
+  status: 'idle',
+  startedAt: 0,
+  updatedAt: 0,
+  totalCourses: 0,
+  completedCourses: 0,
+  failedCourses: 0,
+  indexedItems: 0
+})
+
 export default defineComponent({
   components: {
     TufastButton,
@@ -51,15 +61,7 @@ export default defineComponent({
     } = useSettingHandler()
     const enabled = ref(true)
     const stats = ref<ResponseOpalSmartSearchStats>({ count: 0, lastIndexedAt: 0 })
-    const progress = ref<ResponseOpalSmartSearchProgress>({
-      status: 'idle',
-      startedAt: 0,
-      updatedAt: 0,
-      totalCourses: 0,
-      completedCourses: 0,
-      failedCourses: 0,
-      indexedItems: 0
-    })
+    const progress = ref<ResponseOpalSmartSearchProgress>(idleProgress())
     const controlPending = ref<'start' | 'stop' | null>(null)
     const controlError = ref(false)
     let controlRequestId = 0
@@ -176,17 +178,7 @@ export default defineComponent({
       const change = changes[SmartSearchKey.activeProgress]
       if (areaName !== 'local' || !change) return
       controlError.value = false
-      progress.value = change.newValue
-        ? (change.newValue as ResponseOpalSmartSearchProgress)
-        : {
-            status: 'idle',
-            startedAt: 0,
-            updatedAt: 0,
-            totalCourses: 0,
-            completedCourses: 0,
-            failedCourses: 0,
-            indexedItems: 0
-          }
+      progress.value = change.newValue ? (change.newValue as ResponseOpalSmartSearchProgress) : idleProgress()
       if (progress.value.status === 'done' || progress.value.status === 'failed') refreshStats()
       if (!change.newValue) refreshStats()
     }

@@ -23,6 +23,7 @@ interface PaletteDefaults {
   results: OpalSearchResult[]
   activeIndexProgress?: OpalActiveIndexProgress
   indexEmpty: boolean
+  lastIndexedAt: number
   improveRecommended: boolean
   theme: 'light' | 'dark'
 }
@@ -191,14 +192,46 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
   let controlRequestId = 0
   let controlError: string | null = null
   let searchFailed = false
-  const defaults = await getDefaultResults()
-  overlay.classList.toggle('is-light', defaults.theme === 'light')
-  const defaultResults = defaults.results
-  let improveRecommended = defaults.improveRecommended
+  let defaults: PaletteDefaults | undefined
+  let defaultResults: OpalSearchResult[] = []
+  let improveRecommended = false
+  let defaultsRequestId = 0
+  // Defaults load in the background so the palette is usable immediately; the stored theme corrects this guess.
+  overlay.classList.toggle('is-light', readTheme(undefined) === 'light')
+
+  const applyDefaults = (next: PaletteDefaults) => {
+    defaults = next
+    defaultResults = next.results
+    improveRecommended = next.improveRecommended
+    overlay.classList.toggle('is-light', next.theme === 'light')
+    // Live progress events beat the fetched snapshot
+    if (!activeIndexProgress) {
+      activeIndexProgress = next.activeIndexProgress?.status === 'idle' ? undefined : next.activeIndexProgress
+    }
+    if (!input.value.trim()) {
+      results = defaultResults
+      selectedIndex = 0
+    }
+    render()
+  }
+
+  const refreshDefaults = async () => {
+    const currentDefaultsRequest = ++defaultsRequestId
+    try {
+      const next = await getDefaultResults()
+      if (currentDefaultsRequest !== defaultsRequestId || !overlay.isConnected) return
+      applyDefaults(next)
+    } catch (error) {
+      console.warn('[TUfast Smart Search] Could not load palette defaults:', error)
+    }
+  }
 
   const onActiveIndexProgress = (event: Event) => {
     activeIndexProgress = (event as CustomEvent<OpalActiveIndexProgress>).detail
-    if (activeIndexProgress.status === 'done') improveRecommended = false
+    if (activeIndexProgress.status === 'done') {
+      improveRecommended = false
+      refreshDefaults()
+    }
     render()
   }
 
@@ -206,7 +239,10 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
     if (areaName !== 'local' || !changes[SmartSearchKey.activeProgress]) return
     activeIndexProgress = readActiveIndexProgress(changes[SmartSearchKey.activeProgress].newValue)
     controlError = null
-    if (activeIndexProgress?.status === 'done') improveRecommended = false
+    if (activeIndexProgress?.status === 'done') {
+      improveRecommended = false
+      refreshDefaults()
+    }
     render()
   }
 
@@ -216,6 +252,7 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
   const close = () => {
     requestId += 1
     controlRequestId += 1
+    defaultsRequestId += 1
     window.clearTimeout(debounce)
     window.removeEventListener(smartSearchProgressEvent, onActiveIndexProgress)
     chrome.storage.onChanged.removeListener(onStorageChanged)
@@ -229,7 +266,7 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
       ? searchFailed
         ? strings.searchFailed
         : strings.emptyResults
-      : defaults.indexEmpty
+      : defaults?.indexEmpty
         ? strings.emptyIndex
         : strings.emptyStart
     resultsElement.innerHTML = renderResults(results, selectedIndex, strings, emptyMessage)
@@ -277,7 +314,9 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
       improveMeta.textContent =
         controlError ||
         (totalCourses
-          ? `${processedCourses}/${totalCourses} ${strings.preloadCoursesLabel} · ${progress.indexedItems} ${strings.preloadIndexedItemsLabel}`
+          ? `${processedCourses}/${totalCourses} ${strings.preloadCoursesLabel} · ${progress.indexedItems} ${
+              strings.preloadIndexedItemsLabel
+            }${progress.currentCourseTitle ? ` · ${progress.currentCourseTitle}` : ''}`
           : '')
       improveProgress.hidden = false
       improveProgressBar.style.width = `${coursePercent}%`
@@ -311,7 +350,9 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
     }
 
     improveLabel.textContent = strings.actionImproveSmartSearch
-    improveMeta.textContent = controlError || ''
+    improveMeta.textContent =
+      controlError ||
+      (defaults?.lastIndexedAt ? `${strings.lastImprovedLabel} ${formatRelativeTime(defaults.lastIndexedAt)}` : '')
     improveProgress.hidden = true
     improveProgressBar.style.width = '0%'
   }
@@ -386,9 +427,14 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
     }
   }
 
-  const openSelected = async () => {
+  const openSelected = async (newTab = false) => {
     const selected = results[selectedIndex]
     if (!selected) return
+
+    const navigate = (url: string) => {
+      if (newTab) window.open(url, '_blank', 'noopener')
+      else location.href = url
+    }
 
     await chrome.runtime
       .sendMessage({ cmd: 'opal_smart_search_record_visit', nodeId: selected.node.id })
@@ -404,13 +450,13 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
         await chrome.storage.local.set({
           [SmartSearchKey.highlight]: { title: selected.node.title, url: fileUrl }
         })
-        location.href = parentUrl
+        navigate(parentUrl)
         return
       }
     }
 
     const targetUrl = normalizeAllowedOpalUrl(selected.node.url)
-    if (targetUrl) location.href = targetUrl
+    if (targetUrl) navigate(targetUrl)
   }
 
   input.addEventListener('input', update)
@@ -432,7 +478,7 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
       move(-1)
     } else if (event.key === 'Enter') {
       event.preventDefault()
-      openSelected()
+      openSelected(event.ctrlKey || event.metaKey)
     }
   })
 
@@ -468,11 +514,9 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
 
     event.preventDefault()
     selectedIndex = Number(result.dataset.index || 0)
-    openSelected()
+    openSelected(event.ctrlKey || event.metaKey)
   })
 
-  results = defaultResults
-  activeIndexProgress = defaults.activeIndexProgress?.status === 'idle' ? undefined : defaults.activeIndexProgress
   if (query) {
     input.value = query
     update()
@@ -480,22 +524,26 @@ export async function openOpalSmartSearchPalette(strings: SmartSearchStrings, in
     render()
   }
   requestAnimationFrame(() => input.focus())
+  refreshDefaults()
 }
 
 async function getDefaultResults(): Promise<PaletteDefaults> {
-  const data = await chrome.storage.local.get([
+  // Three independent sources — fetch them in parallel so the palette fills quickly
+  const dataPromise = chrome.storage.local.get([
     'favoriten',
     'meine_kurse',
     'theme',
     SmartSearchKey.activeProgress,
     SmartSearchKey.successfulRuns
   ])
-  const activeIndexProgress = readActiveIndexProgress(
-    await chrome.runtime
+  const [data, rawProgress, stats] = await Promise.all([
+    dataPromise,
+    chrome.runtime
       .sendMessage({ cmd: 'opal_smart_search_progress' })
-      .catch(() => data[SmartSearchKey.activeProgress])
-  )
-  const stats = await getOpalSearchIndexStats()
+      .catch(async () => (await dataPromise)[SmartSearchKey.activeProgress]),
+    getOpalSearchIndexStats()
+  ])
+  const activeIndexProgress = readActiveIndexProgress(rawProgress)
   const favorites = uniqueStoredCourses(readStoredCourses(data.favoriten))
   const defaultCourses = favorites.length ? favorites : uniqueStoredCourses(readStoredCourses(data.meine_kurse))
   const successfulRuns = readSuccessfulRuns(data[SmartSearchKey.successfulRuns])
@@ -530,6 +578,7 @@ async function getDefaultResults(): Promise<PaletteDefaults> {
     results: courseResults.slice(0, DEFAULT_FAVORITE_RESULTS),
     activeIndexProgress,
     indexEmpty: stats.count === 0,
+    lastIndexedAt: stats.lastIndexedAt,
     improveRecommended: shouldRecommendSmartSearchImprove(
       favorites.map(readStoredCourseUrl).filter((url): url is string => Boolean(url)),
       successfulRuns
@@ -567,6 +616,18 @@ function readSuccessfulRuns(value: unknown): Record<string, number> {
   return Object.fromEntries(
     Object.entries(value).filter((entry): entry is [string, number] => typeof entry[1] === 'number')
   )
+}
+
+function formatRelativeTime(timestamp: number): string {
+  const formatter = new Intl.RelativeTimeFormat(navigator.language, { numeric: 'auto' })
+  const minutes = Math.round(Math.max(0, Date.now() - timestamp) / 60000)
+  if (minutes < 60) return formatter.format(-minutes, 'minute')
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return formatter.format(-hours, 'hour')
+  const days = Math.round(hours / 24)
+  if (days < 7) return formatter.format(-days, 'day')
+  if (days < 35) return formatter.format(-Math.round(days / 7), 'week')
+  return formatter.format(-Math.round(days / 30), 'month')
 }
 
 function readTheme(value: unknown): 'light' | 'dark' {

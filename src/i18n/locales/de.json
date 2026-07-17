@@ -342,6 +342,7 @@
         "preloadSuccessfulCoursesLabel": "erfolgreich",
         "preloadFailedCoursesLabel": "fehlgeschlagen",
         "preloadIndexedItemsLabel": "Einträge",
+        "lastImprovedLabel": "Zuletzt verbessert:",
         "headerLabel": "SmartSearch",
         "headerShortcut": "Alt+K",
         "openTitle": "OPAL SmartSearch öffnen",
